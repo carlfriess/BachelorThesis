@@ -45,7 +45,24 @@ As mentioned, the avionics system was based on the platform used in Escher. Howe
 
 \section{Project Scope}
 
+The scope of this Bachelor Thesis is the implementation of the avionics and control software running on the Hyperloop pod. This includes the following tasks:
 
+\begin{itemize}
+    \item Platform selection
+    \item Development of drivers to interface and communicate with on-board sensors
+    \item Development of drivers for a network interface and SD card
+    \item Development of drivers for communication with motor controllers (inverters), battery management systems and brake actuators
+    \item Implementation of a control scheme which insures safe and correct operation of the pod while executing traction control and yaw control algorithms (developed by other people)
+    \item Implementing communication with a control panel (developed by someone else) over a network and logging all collected data, as well as system events
+\end{itemize}
+
+The following tasks are not part of this bachelor thesis and were completed by other people:
+
+\begin{itemize}
+    \item Design of custom PCBs (Hanno Kappen)
+    \item Development of traction control(Julius Wanner and Stefan Weber) and yaw control algorithms (Yannick Strümpler)
+    \item Development of a control panel for visualizing telemetry and controlling the pod (Laurin Paech)
+\end{itemize}
 
 %%% Local Variables: 
 %%% mode: latex
