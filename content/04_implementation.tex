@@ -12,5 +12,50 @@
 
 \chapter{Implementation}
 
-- Structure of system (E.g. What on CPU1 and CPU2?)
-- Flowchart?
+\section{Structure}
+
+Division between CPU1, CPU2 and CLA. Main-loop structure. Data-flow. Static memory allocation.
+
+\section{Networking}
+
+Driver implementation using DMA. UDP. Telemetry and control frame structure. Cross-core communication.
+
+\section{Logging}
+
+Driver implementation. Use of FAT filesystem and trade-off with other file systems. Memory/Speed trade-off for SD cards. Event-based logging. Cross-core communication.
+
+\section{External Analog-To-Digital Converter (ADC)}
+
+Driver implementation and optimization.
+
+\section{RS485 Bus}
+
+General RS485 structure with SCI and transceiver. FIFO usage. RTS solution.
+
+\subsection{OADM}
+
+\subsection{OM70}
+
+\subsection{CAN Bus}
+
+General CAN structure. CAN driver from TI.
+
+\subsection{Inverters}
+
+Structure. State machine.
+
+\subsection{BMS}
+
+Structure. Event-based data.
+
+\section{Navigation algorithm}
+
+\section{State Diagram}
+
+\section{Control Law Accelerator (CLA)}
+
+\section{Debugging}
+
+Smaller footprint printf library. Cross-core communication for printing
+
+\section{Unit Testing}
