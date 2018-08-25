@@ -12,7 +12,7 @@
 
 \chapter{Control System Implementation}
 
-The software for the micro-controller was implemented using the C Programming Language. I considered using a real-time operating system but decided that in this case it would be simpler to not to do so. The software runs a main loop and all modules are fundamentally asynchronous. In testing it was possible to show that this yielded very good performance.
+The software for the micro-controller was implemented using the C Programming Language. I considered using a real-time operating system but decided that in this case it would be simpler not to do so. The software runs a main loop and all modules are fundamentally asynchronous. In testing it was possible to show that this yielded very good performance.
 
 Another major design decision is to use only static memory allocation. Although at times this can be limiting and is less space efficient than dynamic memory allocation, it also leads to higher performance. More importantly, this approach guarantees that there are no memory leaks, which can otherwise become fatal bugs that may be difficult to diagnose.
 
@@ -20,7 +20,7 @@ Another major design decision is to use only static memory allocation. Although 
 
 Each CPU core runs independently from the other, except during system initialisation. Since some peripherals need to be initialised in the correct sequence and the main loop should not be entered until the entire system is initialised, inter-processor communication (IPC) flags are used to synchronise both cores during start-up.
 
-Each core has dedicated FLASH memory, as well as dedicated RAM regions. Additional shared RAM can be read by both CPUs but only written to by one CPU per block. At boot CPU1 configures the global shared RAM regions according to the applications needs and then sends a command to the boot loader on CPU2 using IPC registers to start the program for CPU2.
+Each core has dedicated FLASH memory, as well as dedicated RAM regions. Additional shared RAM can be read by both CPUs but only written to by one CPU per block. At boot CPU1 configures the global shared RAM regions according to the application's needs and then sends a command to the boot loader on CPU2 using IPC registers to start the program for CPU2.
 
 \begin{figure}[H]
     \centering \includegraphics[width=1.0\textwidth]{./figures/system_structure.pdf}
@@ -28,9 +28,9 @@ Each core has dedicated FLASH memory, as well as dedicated RAM regions. Addition
     \label{fig:system_structure}
 \end{figure}
 
-Figure~\ref{fig:system_structure} shows the division of tasks between the two CPU cores and one of the Control Law Accelerator (CLA) co-processors. CPU runs most drivers and handles the control logic and state machine. All sensor data is processed on this core and all control decisions are made on it as well. This consolidates the data processing and control logic in one program with out the need for concurrency control that could be subject to hard to find bugs.
+Figure~\ref{fig:system_structure} shows the division of tasks between the two CPU cores and one of the Control Law Accelerator (CLA) co-processors. CPU runs most drivers and handles the control logic and state machine. All sensor data is processed on this core and all control decisions are made on it as well. This consolidates the data processing and control logic in one program without the need for concurrency control that could be subject to hard to find bugs.
 
-CPU2 is dedicated to Logging and Networking. The main constraint for this is that the FAT file system is computationally heavy and as will be discussed in section~\ref{logging} is hard to implement asynchronously. In order to reduce the performance impact, logging was separated onto the second core. However, since the Ethernet controller uses the same SPI bus as the SD-card and only one CPU core can be the master of each peripheral (in this case one of the SPI interfaces), networking also needs to be handled on the second core.
+CPU2 is dedicated to Logging and Networking. The main constraint for this is that the FAT file system is computationally heavy and, as will be discussed in section~\ref{logging}, is hard to implement asynchronously. In order to reduce the performance impact, logging was separated onto the second core. However, since the Ethernet controller uses the same SPI bus as the SD-card and only one CPU core can be the master of each peripheral (in this case one of the SPI interfaces), networking also needs to be handled on the second core.
 
 The traction and yaw controllers must run regularly in precise intervals and therefore somewhat contradict the asynchronous nature of the remaining system. Furthermore, as they were developed by other people who did not necessarily have detailed knowledge of the system, it made sense to provide an isolated environment for the execution of the controllers.
 
@@ -189,9 +189,9 @@ Due to the limitations described above, the entire logging driver is fundamental
 
 \subsection{Event-based logging}
 
-In the logging system implemented in Escher, logging and telemetry data transmission were coupled. The main disadvantage to this was that all data values were logged at the same frequency and no prioritization was possible. Although most sensors on Escher were sampled at the same rate, this is not the case on Mujinga where some sensors such as the the laser distance sensors are sampled at around 150Hz and others such as the brake pressure sensors are sampled at 10Hz. Thus, in contrast to Escher, Mujinga's logging system is event-based.
+In the logging system implemented in Escher, logging and telemetry data transmission were coupled. The main disadvantage to this was that all data values were logged at the same frequency and no prioritization was possible. Although most sensors on Escher were sampled at the same rate, this is not the case on Mujinga where some sensors such as the laser distance sensors are sampled at around 150Hz and others such as the brake pressure sensors are sampled at 10Hz. Thus, in contrast to Escher, Mujinga's logging system is event-based.
 
-Whenever a new data point is acquired or another system event occurs, a string corresponding to a line in the CSV log file is generated and appended to a buffer. The following listing shows the procedure for generating the string:
+Whenever a new data point is acquired or another system event occurs, a string corresponding to a new line in the CSV log file is generated and appended to a buffer. The following listing shows the procedure for generating the string:
 
 \begin{minted}{c}
 // Buffers used to construct string

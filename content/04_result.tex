@@ -19,7 +19,7 @@
 
 Experimental evaluation of the SD-card driver by visualizing write operations using an oscilloscope attached to the SPI bus revealed an important trade-off that greatly impacts the performance of the logging driver. Although many overheads are introduced by the FAT file system, the SD card also introduces a overhead during read and write operations. As write operations are more relevant in this particular application the following will examine only write operations.
 
-Figure~\ref{fig:sd_card_write} illustrates the initial steps of writing to an SD-card. First a write command is issued. This is then followed by one or more data packets consisting of a data token, 1-2048 bytes of data and two CRC bytes. Between the cursors in Figure~\ref{fig:sd_card_write} one data packet is transmitted. Once all the data packets have been transmitted, a write termination command is transmitted. This last command is omitted if a single block write operation was used.
+Figure~\ref{fig:sd_card_write} illustrates the initial steps of writing to an SD-card. First a write command is issued. This is then followed by one or more data packets consisting of a data token, 1-2048 bytes of data and two CRC bytes. Between the cursors in Figure~\ref{fig:sd_card_write} one data packet is transmitted. Once all the data packets have been transmitted, a write termination command is transmitted. This last command is omitted if a single block write operation is used.
 
 \begin{figure}[H]
     \centering \includegraphics[width=1.0\textwidth]{./figures/"SPI SD WRITE".PNG}
