@@ -10,22 +10,227 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\chapter{Telemetry Frame} \label{telemetry_frame}
+
+\begin{minted}{c}
+struct telemetry_frame {
+
+    uint32_t dist_rail_top_front;   // um
+    uint32_t dist_rail_top_back;    // um
+
+    uint32_t inverter_fl_status;    // enum
+    uint32_t inverter_fr_status;    // enum
+    uint32_t inverter_bl_status;    // enum
+    uint32_t inverter_br_status;    // enum
+
+    uint16_t state;                 // enum
+    uint16_t emergency_reason;      // enum
+    uint16_t brakes_engaged;        // boolean
+    uint16_t log_file_num;          // number
+    uint16_t log_discarded_data;    // boolean
+    uint16_t tape_count;            // number
+    uint16_t tape_miss_count;       // number
+
+    uint16_t progression;           // m
+    uint16_t velocity;              // km/h
+    uint16_t max_velocity;          // km/h
+    uint16_t run_timer;             // ms
+
+    uint16_t inverter_AUX;          // boolean
+    uint16_t inverter_RFE;          // boolean
+    uint16_t inverter_RUN;          // boolean
+    int16_t inverter_fl_torque;     // %
+    int16_t inverter_fr_torque;     // %
+    int16_t inverter_bl_torque;     // %
+    int16_t inverter_br_torque;     // %
+
+    int16_t inverter_fl_speed;      // rpm
+    int16_t inverter_fl_motor_temp; // °C
+    int16_t inverter_fl_igbt_temp;  // °C
+    int16_t inverter_fl_motor_current;  // A
+    int16_t inverter_fl_dc_bus;     // V
+    int16_t inverter_fr_speed;      // rpm
+    int16_t inverter_fr_motor_temp; // °C
+    int16_t inverter_fr_igbt_temp;  // °C
+    int16_t inverter_fr_motor_current;  // A
+    int16_t inverter_fr_dc_bus;     // V
+    int16_t inverter_bl_speed;      // rpm
+    int16_t inverter_bl_motor_temp; // °C
+    int16_t inverter_bl_igbt_temp;  // °C
+    int16_t inverter_bl_motor_current;  // A
+    int16_t inverter_bl_dc_bus;     // V
+    int16_t inverter_br_speed;      // rpm
+    int16_t inverter_br_motor_temp; // °C
+    int16_t inverter_br_igbt_temp;  // °C
+    int16_t inverter_br_motor_current;  // A
+    int16_t inverter_br_dc_bus;     // V
+
+    uint16_t hv_bat_BMS;            // boolean
+    uint16_t hv_bat_HS;             // boolean
+    uint16_t hv_bat_PRE;            // boolean
+    uint16_t hv_bat_LS;             // boolean
+
+    uint16_t hv_bat_l_isolation;    // boolean
+    int16_t hv_bat_l_voltage;       // V
+    int16_t hv_bat_l_min_voltage;   // mV
+    int16_t hv_bat_l_current;       // A
+    int16_t hv_bat_l_max_cell_temp; // °C
+    uint16_t hv_bat_r_isolation;    // boolean
+    int16_t hv_bat_r_voltage;       // V
+    int16_t hv_bat_r_min_voltage;   // mV
+    int16_t hv_bat_r_current;       // A
+    int16_t hv_bat_r_max_cell_temp; // °C
+
+    uint16_t lv_bat_current;        // mA
+    uint16_t lv_bat_voltage;        // mV
+    uint16_t lv_bat_capacity_used;  // mAh
+
+    uint16_t dist_rail_side_front;  // mm
+    uint16_t dist_rail_side_back;   // mm
+
+    uint16_t press_brake_block_front;   // bar
+    uint16_t press_brake_block_back;    // bar
+    uint16_t press_brake_piston_front;  // bar
+    uint16_t press_brake_piston_back;   // bar
+
+    uint16_t press_ambient;         // mbar
+    uint16_t press_hv_bat_left;     // mbar
+    uint16_t press_hv_bat_right;    // mbar
+
+};
+\end{minted}
+
+\chapter{Logging event ID enumeration} \label{log_event}
+
+\begin{minted}{c}
+enum log_event {
+
+    /*
+     * Pod events
+     */
+    LOG_EVENT_STATE_TRANSITION = 1,     // enum emergency_reason
+    LOG_EVENT_EMERGENCY,                // enum emergency_reason
+
+    /*
+     * Inverters
+     */
+    LOG_EVENT_INVERTER_AUX,             // boolean
+    LOG_EVENT_INVERTER_RFE,             // boolean
+    LOG_EVENT_INVERTER_RUN,             // boolean
+    LOG_EVENT_INVERTER_CLEAR_FAULT,     // -
+    LOG_EVENT_INVERTER_FL_SET_TORQUE,   // %
+    LOG_EVENT_INVERTER_FR_SET_TORQUE,   // %
+    LOG_EVENT_INVERTER_BL_SET_TORQUE,   // %
+    LOG_EVENT_INVERTER_BR_SET_TORQUE,   // %
+    LOG_EVENT_INVERTER_SET_SPEED,       // %
+    LOG_EVENT_INVERTER_FL_STATUS,       // enum
+    LOG_EVENT_INVERTER_FL_SPEED,        // rpm
+    LOG_EVENT_INVERTER_FL_MOTOR_TEMP,   // °C
+    LOG_EVENT_INVERTER_FL_IGBT_TEMP,    // °C
+    LOG_EVENT_INVERTER_FL_MOTOR_CURRENT,// A
+    LOG_EVENT_INVERTER_FL_DC_BUS,       // V
+    LOG_EVENT_INVERTER_FR_STATUS,       // enum
+    LOG_EVENT_INVERTER_FR_SPEED,        // rpm
+    LOG_EVENT_INVERTER_FR_MOTOR_TEMP,   // °C
+    LOG_EVENT_INVERTER_FR_IGBT_TEMP,    // °C
+    LOG_EVENT_INVERTER_FR_MOTOR_CURRENT,// A
+    LOG_EVENT_INVERTER_FR_DC_BUS,       // V
+    LOG_EVENT_INVERTER_BL_STATUS,       // enum
+    LOG_EVENT_INVERTER_BL_SPEED,        // rpm
+    LOG_EVENT_INVERTER_BL_MOTOR_TEMP,   // °C
+    LOG_EVENT_INVERTER_BL_IGBT_TEMP,    // °C
+    LOG_EVENT_INVERTER_BL_MOTOR_CURRENT,// A
+    LOG_EVENT_INVERTER_BL_DC_BUS,       // V
+    LOG_EVENT_INVERTER_BR_STATUS,       // enum
+    LOG_EVENT_INVERTER_BR_SPEED,        // rpm
+    LOG_EVENT_INVERTER_BR_MOTOR_TEMP,   // °C
+    LOG_EVENT_INVERTER_BR_IGBT_TEMP,    // °C
+    LOG_EVENT_INVERTER_BR_MOTOR_CURRENT,// A
+    LOG_EVENT_INVERTER_BR_DC_BUS,       // V
+
+    /*
+     * Battery Management System
+     */
+    LOG_EVENT_BMS_LS,               // boolean
+    LOG_EVENT_BMS_PRE,              // boolean
+    LOG_EVENT_BMS_HS,               // boolean
+
+    /*
+     * High voltage batteries
+     */
+    LOG_EVENT_HV_BAT_L_VOLTAGE,         // V
+    LOG_EVENT_HV_BAT_L_MIN_VOLTAGE,     // mV
+    LOG_EVENT_HV_BAT_L_CURRENT,         // A
+    LOG_EVENT_HV_BAT_L_MAX_CELL_TEMP,   // °C
+    LOG_EVENT_HV_BAT_R_VOLTAGE,         // V
+    LOG_EVENT_HV_BAT_R_MIN_VOLTAGE,     // mV
+    LOG_EVENT_HV_BAT_R_CURRENT,         // A
+    LOG_EVENT_HV_BAT_R_MAX_CELL_TEMP,   // °C
+
+    /*
+     * Brake event
+     */
+    LOG_EVENT_BRAKES_ENGAGED,       // boolean
+
+    /*
+     * Navigation
+     */
+    LOG_EVENT_TAPES_DETECTED,       // number
+    LOG_EVENT_TAPES_MISSED,         // number
+    LOG_EVENT_PROGRESSION,          // mm
+    LOG_EVENT_VELOCITY,             // mm/s
+
+    /*
+     * Low voltage battery
+     */
+    LOG_EVENT_LV_BAT_CURRENT,       // mA
+    LOG_EVENT_LV_BAT_VOLTAGE,       // mV
+    LOG_EVENT_LV_BAT_CAPACITY_USED, // mAh
+
+    /*
+     * OM70 laser sensors
+     */
+    LOG_EVENT_DIST_RAIL_SIDE_FRONT, // um
+    LOG_EVENT_DIST_RAIL_SIDE_BACK,  // um
+
+    /*
+     * OADM laser sensors
+     */
+    LOG_EVENT_DIST_RAIL_TOP_FRONT,  // um
+    LOG_EVENT_DIST_RAIL_TOP_BACK,   // um
+
+    /*
+     * PBM4 pressure sensors
+     */
+    LOG_EVENT_PRESS_BRAKE_BLOCK_FRONT,  // bar
+    LOG_EVENT_PRESS_BRAKE_BLOCK_BACK,   // bar
+    LOG_EVENT_PRESS_BRAKE_PISTON_FRONT, // bar
+    LOG_EVENT_PRESS_BRAKE_PISTON_BACK,  // bar
+
+    /*
+     * PBMN pressure sensors
+     */
+    LOG_EVENT_PRESS_AMBIENT,        // mbar
+    LOG_EVENT_PRESS_HV_BAT_LEFT,    // mbar
+    LOG_EVENT_PRESS_HV_BAT_RIGHT,   // mbar
+
+    /*
+     * Controller outputs
+     */
+    LOG_EVENT_YAW_MOMENTUM = 400,   // mNm
+    LOG_EVENT_TRACTION_TORQUE_FL,   // number
+    LOG_EVENT_TRACTION_TORQUE_FR,   // number
+    LOG_EVENT_TRACTION_TORQUE_BL,   // number
+    LOG_EVENT_TRACTION_TORQUE_BR,   // number
+
+};
+\end{minted}
+
 %\chapter{Task Description}
 %\includepdf[pages=-, turn=false, scale=0.9]{task/AufgabenstellungBachelorArbeitDINFKpdf.pdf}
 
 
 \chapter{Declaration of Originality}\label{chap:originality}
-Include the declaration of authorship with the \shell{\textbackslash
-  includepdf} command (sign it and scan it). For more information
-about plagiarism, please visit
-\url{https://www.ethz.ch/students/en/studies/performance-assessments/plagiarism.html}
-
-\begin{itemize}
-\item \textbf{English version:}
-  \url{https://www.ethz.ch/content/dam/ethz/main/education/rechtliches-abschluesse/leistungskontrollen/declaration-originality.pdf}
-\item \textbf{German version:}
-  \url{https://www.ethz.ch/content/dam/ethz/main/education/rechtliches-abschluesse/leistungskontrollen/plagiat-eigenstaendigkeitserklaerung.pdf}
-\end{itemize}
 
 % include the signed declaration of authorship!
 \includepdf[pages=-, turn=false, scale=0.9]{./figures/declaration_of_originality}
