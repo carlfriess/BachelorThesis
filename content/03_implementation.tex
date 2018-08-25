@@ -146,7 +146,9 @@ Using the DMA controller means that the SPI interface can operate at it's highes
 
 \section{Logging} \label{logging}
 
-The largest design decision in designing the logging driver was the file system to use. The main requirement was for the logged data to be quickly and easily retrievable. The most commonly used file system on SD-cards is FAT (FAT32 or exFAT). The advantage of the FAT file system in this case is that it can be read with almost any computer making it particularly easy to retrieve log files. On the other hand, FAT is very inefficient unless the FAT table (which on larger storage devices is very large) can be cached in memory. If the FAT table is not cached, it must be read block by block every time a file is being written and a new block is needed.
+\subsection{File system}
+
+The largest design decision in designing the logging driver was the file system to use. The main requirement was for the logged data to be quickly and easily retrievable. The most commonly used file system on SD-cards is FAT (FAT32 or exFAT). The advantage of the FAT file system in this case is that it can be read with almost any computer making it particularly easy to retrieve log files. On the other hand, FAT is very inefficient unless the FAT table (which on larger storage devices is very large) can be cached in memory. If the FAT table is not cached, it must be read block by block every time a file is being written and a new block is needed. In embedded applications like this one, it is usually not possible to cache the FAT table.
 
 Instead of using FAT I also considered employing specialized logging file systems such as log\_fs \todo{insert reference} and Yaffs \todo{insert reference}. These sequentially write to the storage medium and do not need to access any other data structures while writing the file. Although this leads to higher performance while writing, it also makes finding and extracting log data much more complex. Furthermore, it is not possible to read the data on a regular computer without specialised software. For this reason, I decided to use the FAT file system and write the log data to CSV files.
 
@@ -179,13 +181,68 @@ timestamp;id;value
 4879;2;4
 \end{verbatim}
 
-Driver implementation. Use of FAT filesystem and trade-off with other file systems. Memory/Speed trade-off for SD cards. Event-based logging. Cross-core communication.
+Although beneficial, implementing a specialised FAT driver would not have been possible within the time-frame of this project. Therefore, I decided to use the FatFs\todo{reference} library. At first I attempted to use the newest version of the library. However, the micro-controller uses 16-bit addressable memory and therefore does not support 8-bit data types. Without rewriting large portions of the library it was not possible for it to run without native 8-bit data types. Luckily Texas Instruments includes an older version of the library with ControlSUITE\todo{reference} that is able to run without 8-bit data types.
+
+The FatFs library provides the file system library but an SD-card driver layer also needed to be implemented to provide the interface to the underlying storage medium through the SPI driver. Unlike all other drivers, the SD-card and FAT drivers are not asynchronous. This is mostly due to how the FatFs library operates. Additionally, the data is organized into 8-bit bytes each contained within a 16-bit word which is the smallest possible data type on the processor. Furthermore, due to this constraint the use of DMA is not practical as data mapping is necessary before data can be written to the SPI interface and after it is read from the SPI interface.
+
+Due to the limitations described above, the entire logging driver is fundamentally synchronous and the SD-card driver is implemented using only the FIFO extension of the SPI interface and without DMA. Given more time, a custom FAT driver could be designed specifically for this processor and incorporate the DMA controller and asynchronous operation. Alternatively, a real-time operation system could be used to partially alleviate the problem using threading. Another crude fix to introduce some asynchronism would be to utilize long jumps to context switch out of the logging driver.
+
+\subsection{Event-based logging}
+
+In the logging system implemented in Escher, logging and telemetry data transmission were coupled. The main disadvantage to this was that all data values were logged at the same frequency and no prioritization was possible. Although most sensors on Escher were sampled at the same rate, this is not the case on Mujinga where some sensors such as the the laser distance sensors are sampled at around 150Hz and others such as the brake pressure sensors are sampled at 10Hz. Thus, in contrast to Escher, Mujinga's logging system is event-based.
+
+Whenever a new data point is acquired or another system event occurs, a string corresponding to a line in the CSV log file is generated and appended to a buffer. The following listing shows the procedure for generating the string:
+
+\begin{minted}{c}
+// Buffers used to construct string
+// ( 8) timestamp (ms)
+// ( 1) ;
+// ( 5) id
+// ( 1) ;
+// (20) value
+// ( 3) \r\n\0
+static char string[38], temp[21];
+
+// Write timestamp
+itoa(micros() / 1000, string);
+
+// Write ';'
+strcat(string, ";");
+
+// Write id
+itoa(id, temp);
+strcat(string, temp);
+
+// Write ';'
+strcat(string, ";");
+
+// Write value
+itoa(value, temp);
+strcat(string, temp);
+
+// Write "\r\n"
+strcat(string, "\r\n");
+\end{minted}
+
+\subsection{Dual-core structure}
+
+Similar to the networking driver, the logging driver is also divided between both cores since all data that needs to be logged is generated on CPU1 while CPU2 maintains the file system and writes to the log file. Figure~\ref{fig:logging_structure} illustrates the cross-core structure.
 
 \begin{figure}[H]
     \centering \includegraphics[width=1.0\textwidth]{./figures/logging_structure.pdf}
     \caption{Structure of logging driver.}
     \label{fig:logging_structure}
 \end{figure}
+
+Two buffers in shared memory (writeable by CPU1) are used to hold the next segments of the log file as they are generated. Once a buffer is full an IPC flag is used to communicate this to CPU2 and CPU1 continues to write to the other buffer. CPU2 writes the buffer out to the SD-card. Once this is complete it uses an IPC flag to signal to CPU1 that the buffer can be overwritten again and the process repeats.
+
+Usually this kind of functionality would be achieved using a ring-buffer. However, in this particular situation this approach does not work as well for two reasons:
+
+Firstly, for performance reasons relating to the SD-card, performance is best when the file is written in consecutive blocks of 512 byte. Additionally, this reduces the overhead produced by reading the FAT table since every block will only be accessed to once.
+
+Secondly, to optimized the performance of the FatFs library by reducing overheads, the write operation should be invoked infrequently with large chunks of data rather than frequently with smaller chunks of data. When using a ring-buffer a chunk of data may not be consecutively stored in memory leading to at least two invocations of the write operation rather than one.
+
+Given these constraints, an optimally implemented and configured ring-buffer would operate identically to the separate buffers approach explained above. Each buffer consists of 4kB. The trade-off leading to this size is explained in Section~\ref{logging_perf}.
 
 \section{External Analog-To-Digital Converter (ADC)}
 
@@ -199,15 +256,15 @@ General RS485 structure with SCI and transceiver. FIFO usage. RTS solution.
 
 \subsection{OM70}
 
-\subsection{CAN Bus}
+\section{CAN Bus}
 
 General CAN structure. CAN driver from TI.
 
-\subsection{Inverters}
+\section{Inverters}
 
 Structure. State machine.
 
-\subsection{BMS}
+\section{BMS}
 
 Structure. Event-based data.
 
