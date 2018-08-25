@@ -11,13 +11,14 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter{Introduction}
-The Hyperloop Passenger Transportation Concept was initially proposed by Elon Musk in his Hyperloop Alpha paper\cite{HyperloopAlpha} as an alternative to the planned high-speed rail project connecting San Francisco and Los Angeles. The argument was, that the high-speed rail project was not the state of the art in terms of technology, much too expensive and significantly slower than other high-speed trains around the world. The objective of the Hyperloop is to achieve passenger transport on the ground over long distances at speeds exceeding 1220 km/h.
 
-To achieve such high speeds, pressurized passenger capsules ("pods") would run in tubes where a vacuum is maintained. The initial proposal also called for air-bearing to allow the pod to levitate during transit. In order to supply the air bearings with pressurised air and further reduce drag, a compressor would suck air in through an inlet at the front of the pod. A linear motor system would be used to accelerate and decelerate the pod at high speeds while limiting the acceleration to 1g for passenger comfort.
+The Hyperloop Passenger Transportation Concept was initially proposed by Elon Musk in his Hyperloop Alpha paper\cite{HyperloopAlpha} as an alternative to the planned high-speed rail project connecting San Francisco and Los Angeles. The argument was, that the high-speed rail project is not state of the art in terms of technology, it is much too expensive and significantly slower than other high-speed trains around the world. The objective of the Hyperloop is to achieve passenger transport on the ground over long distances at speeds exceeding 1220 km/h.
+
+To achieve such high speeds, pressurized passenger capsules ("pods") would run in tubes where near vacuum is maintained. The initial proposal also called for air-bearing to allow the pod to levitate during transit. In order to supply the air bearings with pressurised air and further reduce drag, a compressor would suck the remaining air in through an inlet at the front of the pod. A linear motor system would be used to accelerate and decelerate the pod at high speeds while limiting the acceleration to 1g for passenger comfort.
 
 \section{Hyperloop Competition}
 
-Although the Hyperloop Alpha proposal was turned down, SpaceX decided in 2015 to hold a student competition\cite{HyperloopCompetiton} in order to drive the development of Hyperloop technology. To this end they constructed a 1,25km test tube designed to reaching an ambient pressure of 8mBar. The tube features an aluminium sub-track and rail mounted on a concrete fill bed.
+Although the Hyperloop Alpha proposal was turned down, SpaceX decided in 2015 to hold a student competition\cite{HyperloopCompetiton} in order to drive the development of Hyperloop technology. To this end they constructed a 1,25km test tube designed to reach an ambient pressure of 8mBar. The tube features an aluminium sub-track and rail mounted on a concrete fill bed.
 
 \todo{Add picture of the tube}
 
@@ -27,7 +28,7 @@ The objective for the teams is to build a prototype Hyperloop pod and race it in
 
 The first step of the competition is the Preliminary Design Briefing in which the team must outline the main concepts of their pod design. After it has been approved teams may proceed to submit the Final Design Briefing a few months later. This must include all details of the pod's design and show that the design is safe. Approximately 20 teams are then selected to compete in the competition at SpaceX headquarters in Los Angeles.
 
-The competition in Los Angeles consists mostly of testing week where the pod must pass a series of tests to prove safety and correct operation before being allowed to enter the test tube. The most promising teams are then selected to compete in the final on the last day of the competition. Here teams aim to reach the highest speed and win the competition.
+The competition in Los Angeles consists mostly of a testing week where the pod must pass a series of tests to prove safety and correct operation before being allowed to enter the test tube. The most promising teams are then selected to compete in the final on the last day of the competition. Here teams aim to reach the highest speed and win the competition.
 
 \section{Swissloop}
 
@@ -35,7 +36,7 @@ Swissloop was founded as an association in September 2016 by a group of ETH Zuri
 
 \subsection{Escher}
 
-Swissloop's first pod design featured a cold gas propulsion system which was designed as for second acceleration stage after the initial acceleration delivered by the pusher. The pod also featured hydraulic bakes as well as a passive levitation system.
+Swissloop's first pod featured a cold gas propulsion system which was designed for a second acceleration stage after the initial acceleration delivered by the pusher. The pod also featured hydraulic bakes as well as a passive levitation system.
 
 The avionics implemented for Escher included around 30 sensors and provided a reliable basis for controlling the pod. Although eventually several flaws became apparent, the system provided a solid basis for the development of the avionics system of Mujinga. While Mujinga retained some components of the hardware, the design ended up being completely different in several ways. The Software was almost entirely rewritten from the ground up leading to large performance and reliability improvements.
 
@@ -43,9 +44,9 @@ The avionics implemented for Escher included around 30 sensors and provided a re
 
 \subsection{Mujinga}
 
-Swissloop's second pod design builds on all the lessons learned with Escher and therefore consists of many drastic changes. Most noticeable, Mujinga no longer levitates but uses wheels and four electric motors as a propulsion system. Two high-voltage (700V) batteries produce 500kW of power to accelerate to a top-speed of 500km/h. Similar but redesigned hydraulic brakes decelerate the pod before the end of the 1,25km test track. A pneumatic clamping system presses the pod against the track to produce the down-force necessary to achieve the necessary acceleration.
+Swissloop's second pod design builds on the lessons learned with Escher but includes many significant changes. Most noticeable, Mujinga no longer levitates but uses wheels and four electric motors as a propulsion system. Two high-voltage (700V) batteries produce 500kW of power to accelerate to a top-speed of 500km/h. Similar but redesigned hydraulic brakes decelerate the pod before the end of the 1,25km test track. A pneumatic clamping system presses the pod against the track to produce the down-force necessary to achieve the necessary acceleration.
 
-As mentioned, the avionics system was based on the platform used in Escher. However, a large emphasis was placed on greater simplicity and reducing bottlenecks. A sever problem with the system in Escher was that the amount of data that could be logged was very small. Therefore, the logging system in Mujinga was specifically designed to handle much higher data rates.
+As mentioned, the avionics system was based on the platform used in Escher. However, much emphasis was placed on greater simplicity and reducing bottlenecks. A problem with the logging system in Escher meant that the amount of data that could be acquired was very small. Therefore, the logging system in Mujinga was specifically designed to handle much higher data rates.
 
 \todo{Add picture of Mujinga}
 
@@ -58,8 +59,8 @@ The scope of this Bachelor Thesis is the implementation of the avionics and cont
     \item Development of drivers to interface and communicate with on-board sensors
     \item Development of drivers for a network interface and SD card
     \item Development of drivers for communication with motor controllers (inverters), battery management systems and brake actuators
-    \item Implementation of a control scheme which insures safe and correct operation of the pod while executing traction control and yaw control algorithms (developed by other people)
-    \item Implementing communication with a control panel (developed by someone else) over a network and logging all collected data, as well as system events
+    \item Implementation of a control scheme which insures safe and correct operation of the pod while executing traction control and yaw control algorithms (developed by team members)
+    \item Implementing communication with a control panel (developed by another team member) over a network and logging all collected data, as well as system events
 \end{itemize}
 
 The following tasks are not part of this bachelor thesis and were completed by other people:
@@ -68,8 +69,11 @@ The following tasks are not part of this bachelor thesis and were completed by o
     \item Design of custom PCBs (Hanno Kappen)
     \item Development of traction control(Julius Wanner and Stefan Weber) and yaw control algorithms (Yannick Strümpler)
     \item Development of a control panel for visualizing telemetry and controlling the pod (Laurin Paech)
-    \item Wireless network for communication with the pod
+    \item Wireless network for communication with the pod (SpaceX)
 \end{itemize}
+
+
+\todo{Implemented in competition... tested...}
 
 %%% Local Variables: 
 %%% mode: latex

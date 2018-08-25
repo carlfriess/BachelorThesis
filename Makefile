@@ -91,7 +91,7 @@ help:
 	@echo
 
 %.pdf: %.tex $(CONTENT_SRC)
-	pdflatex $(MAIN_SRC).tex
+	pdflatex -shell-escape $(MAIN_SRC).tex
 
 figures: tgif_figures
 
@@ -99,10 +99,10 @@ view:
 	okular $(MAIN_SRC).pdf &
 
 bibtex:
-	pdflatex $(MAIN_SRC).tex
+	pdflatex -shell-escape $(MAIN_SRC).tex
 	bibtex $(MAIN_SRC)
-	pdflatex $(MAIN_SRC).tex
-	pdflatex $(MAIN_SRC).tex
+	pdflatex -shell-escape $(MAIN_SRC).tex
+	pdflatex -shell-escape $(MAIN_SRC).tex
 
 glossary:
 	makeglossaries $(MAIN_SRC)
