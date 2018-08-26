@@ -38,7 +38,7 @@ Four high-pressure sensors were installed in the braking system. One in each bra
 
 Two laser contrast sensors were used to detect optical marking on the wall of the test tube. The optical markings occur in intervals of 30m and can therefore be used to determine the location of the pod along the tube and calculate it's velocity.
 
-\section{Propulsion system}
+\section{Propulsion system} \label{spec_inverter}
 
 Four two-phase electric motors are used to accelerate the pod. Each is driven by a separate inverter. The inverters are controlled via a CAN bus and two digital safety signals. The RFE signal enables the inverter and the RUN signal connects the high voltage from the battery to the motor. The inverter can be configured over the CAN bus. Subsequently, both torque and speed commands can be given to the inverters to drive the motors. Furthermore, the inverters provide telemetry over CAN including the following:
 
