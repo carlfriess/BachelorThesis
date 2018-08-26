@@ -246,31 +246,231 @@ Given these constraints, an optimally implemented and configured ring-buffer wou
 
 \section{External Analog-To-Digital Converter (ADC)}
 
-Driver implementation and optimization.
+Some of the code for communicating with the external analog-to-digital converter was based on the software from Escher, since the same component was used. However, the code has been optimized to reduce communication to 32 SPI clock cycles per measurement.
+
+At start-up the external ADC is reset to make sure it is in a known state. After initialising the ADC, it is configured to use it's internal 2.5V reference and deliver 100 Samples per second. The ADC reads data form 10 channels so this sample rate provides a constant sampling rate of 10Hz. Single-shot conversion mode is used so that the ADC provides a single conversion before the channel can be changed for the next conversion.
+
+In the main loop the processor waits for the $\overline{DRDY}$ signal from the ADC to go low indication that the last conversion has completed. Next, the data sequence illustrated by Figure~\ref{fig:adc_spi} delivers the 24-bit value of the conversion and starts the next conversion.
+
+\begin{figure}[H]
+    \centering \includegraphics[width=1.0\textwidth]{./figures/"ADC SPI1".PNG}
+    \caption{Data flow on the SPI bus with the external ADC.}
+    \label{fig:adc_spi}
+\end{figure}
+
+The following commands and data can be observed in Figure~\ref{fig:adc_spi}:
+
+\begin{itemize}
+    \item MCU $\rightarrow$ ADC: (MOSI)
+    \begin{itemize}
+        \item \textbf{42 00}: Write one byte to input multiplexer register.
+        \item \textbf{19}: New value for input multiplexer register, selecting next channel.
+        \item \textbf{08}: Start conversion command.
+    \end{itemize}
+    \item ADC $\rightarrow$ MCU: (SOMI)
+    \begin{itemize}
+        \item \textbf{00}: Status byte.
+        \item \textbf{11 A3 5C}: Value of previous conversion.
+    \end{itemize}
+\end{itemize}
 
 \section{RS485 Bus}
 
-General RS485 structure with SCI and transceiver. FIFO usage. RTS solution.
+\begin{figure}[H]
+    \centering \includegraphics[width=1.0\textwidth]{./figures/rs485_structure.pdf}
+    \caption{Structure of RS485 bus - Texas Instruments SN65HVD7x Datasheet\cite{RS485TransceiverDatasheet}}
+    \label{fig:rs485_structure}
+\end{figure}
+
+As mentioned before, the data format used in the RS485 bus standard is identical to standard serial (RS232) and therefore supported by the Serial Communication Interface (SCI) built into the micro-controller. However, RS485 uses differential signalling. Therefore, a transceiver is required. Additionally, the bus structure means that only a single device may transmit at a time. For the micro-controller this has more complicated implications. The transceiver can only receive data if it is not transmitting, meaning that the micro-controller must signal produce an RTS signal ($\overline{RE}$ and $DE$) to determine which state the transceiver is in.
+
+Using the 16-level FIFO extension of the SCI interface, the drivers are able to operate asynchronously by pushing up to 16 words into the FIFO and continue processing while these are transmitted. The need to control the RTS signal would now break this asynchronism since it must be asserted immediately before beginning the transmission and immediately after the transmission completes to allow other devices to use the bus. Next, I will describe a solution which allows for asynchronism again using interrupts.
+
+First, the FIFO interrupt is configured to trigger once the FIFO is empty. However, the interrupt triggers when the last word in the FIFO has been transferred to the transmit buffer. There is no interrupt that can trigger when the last word has been fully transmitted. Therefore, the interrupt service routine triggers a CPU timer which triggers another interrupt after the duration it takes to transmit the final word. This time can be calculated using the BAUD rate. The interrupt service routine for the timer interrupt the de-asserts the RTS signal.
 
 \subsection{OADM}
 
+The RS485 protocol used by the Baumer OADM\todo{reference} laser distance sensors is simple. Each sensor has a unique ID (a single-digit non-zero number), which is configured during installation. The micro-controller requests the current sensor reading from a specific sensor using it's ID and the sensor responds with the reading. The request consists of four characters where \texttt{*} represents the ID of the desired sensor: \texttt{\{*M\}}. An example reply from the sensor looks as follows: \texttt{\{*MM0448564\}}.
+
+The following listing shows the \mintinline{c}{update()} function for the OADM driver module. A simple state machine with two states allows the the module to be reset to the \mintinline{c}{READY} state, which is also it's initial state.
+
+\begin{minted}{c}
+void oadm_update()
+{
+
+    uint16_t BUF[12];
+    uint32_t reading;
+    static uint64_t time_requested = 0;
+
+    switch (state) {
+
+    case READING:
+        // Check if we have received the full reply from the sensor
+        if (micros() - time_requested > 100000ull) {
+            state = READY;
+            return;
+        } else if (scic_available() < 12) {
+            return;
+        }
+
+        // Read the sensor's reply
+        scic_rx(BUF, 12);
+
+        // Parse the response
+        BUF[9] = '\0';
+        reading = map(atoi((char *) BUF + 4), 0, 8191, 0, 120000);  // um
+
+        // Emit the reading
+        globals_sensor_data(current_sensor == 1 ? SENSOR_DIST_RAIL_TOP_FRONT : SENSOR_DIST_RAIL_TOP_BACK, &reading);
+
+        // Read from the next sensor
+        current_sensor = (current_sensor % NUM_SENSORS) + 1;
+
+        // Fall through to READY case
+        /* no break */
+
+    case READY:
+        // Prepare the request
+        BUF[0] = '{';
+        BUF[1] = '0' + current_sensor;
+        BUF[2] = 'M';
+        BUF[3] = '}';
+
+        // Send the request
+        scic_tx(BUF, 4);
+
+        // Keep track of time
+        time_requested = micros();
+
+        // Go to READING state
+        state = READING;
+
+        break;
+
+    }
+
+}
+\end{minted}
+
 \subsection{OM70}
+
+The Baumer OM70\todo{reference} sensors use different RS485 bus settings and also employ a more complex protocol. Nonetheless, the principal of operation is the same except that the sensors must be put into an RS485 enabled mode using an RS485 lock command at start-up. However, a problem arises from the reply from the sensor being significantly longer. The following few lines are example responses from the sensor.
+
+\begin{verbatim}
+:01A;108.648;0;2DBB\r\n
+:01A;108.577;13;921D\r\n
+:01A;NaN;12;B54E\r\n
+\end{verbatim}
+
+The replies from this sensor are up to 22 characters long. That is more than the 16 characters that fit into the FIFO of the SCI. This is an issue as without using the FIFO the driver cannot operate asynchronously. Using DMA would alleviate this problem but unfortunately the DMA controller on this micro-controller cannot access the SCI. Furthermore, the length of the reply from the sensor is variable and so the DMA controller would not be well suited to the task.
+
+To prevent a FIFO overflow, an interrupt on the receiving FIFO is configured to trigger when the first 13 characters of a reply have been received. The interrupt service routine then reads the first segment of the reply. The second segment can then be read later without the FIFO overflowing.
 
 \section{CAN Bus}
 
 General CAN structure. CAN driver from TI.
 
-\section{Inverters}
+\subsection{Inverters}
 
 Structure. State machine.
 
-\section{BMS}
+\subsection{BMS}
 
 Structure. Event-based data.
 
 \section{Navigation algorithm}
 
+The task of the navigation algorithm is to ensure that the control system can determine the location of the pod and it's velocity.
+
+The primary navigational sensors are optical contrast sensors that recognize optical markings placed in 30m intervals along the track. Although the inverters provide rotational speed measurements from the motors (and therefore the wheels), this on it's own would not be a sufficiently. It is not unlikely, that despite the traction controllers influence the wheels could slip during acceleration. In the event of slipping on the wheels the data from the motors becomes useless for navigational purposes. Furthermore, from a safety point of view, it is not necessary to continuously update the pods position or velocity. The control system only needs to know when the pod has exceeded a pre-defined distance in order to engage the brakes at the correct time. Nonetheless, the rotational speed measurements do take some influence on the navigation algorithm.
+
+Due to the importance of correct navigation and because only one type of sensor is used as a primary input, the system must incorporate fault detection and recovery. The pod has two laser contrast sensors: one at the front and one at the back. This means that at most one laser sensor may miss an optical marking and in almost all situations the system will be able to detect this fault and recover. This is implemented by observing the order in which the sensors trigger. The sensors provide digital output signals that go high when an optical marking is detected, which triggers an interrupt. The following listing shows the interrupt service routine for the front sensor:
+
+\begin{minted}{c}
+__interrupt void tape_detection_front_isr(void)
+{
+
+    uint64_t now = micros();
+    uint64_t min_time_interval = nav_tape_min_time_interval();
+
+    if (now > tape_detection_time_front + min_time_interval) {
+
+        last_tape_detection_time = tape_detection_time_front;
+        tape_detection_time_front = now;
+        tape_count_front++;
+
+        // Check if the last tape was missed at the back
+        if (tape_count_front > tape_count_back + 1) {
+            tape_count_back++;
+            tape_miss_count++;
+        }
+
+        tape_detected = 1;
+
+    }
+
+    EALLOW;
+    PieCtrlRegs.PIEACK.all |= PIEACK_GROUP1;    // ACK the interrupt
+    EDIS;
+
+}
+\end{minted}
+
+The interrupt service routine for the back sensor is analogous. By checking if the number of optical markings detected at the front (\mintinline{c}{tape_count_front}) is at least two greater than at the back (\mintinline{c}{tape_count_back}), the system can determine if the back sensor missed the previous optical marking.
+
+Should the optical marking be dirty it is possible that the sensor triggers twice or more. To prevent the algorithm from registering this as several markings, it checks if a minimum amount of time has passed since the last trigger. This time period is calculated using a call to \mintinline{c}{nav_tape_min_time_interval()} where the average of all rotational speed measurements is used to estimate the amount of time the tape sensor is over an optical marking in order to accurately reject false triggers until the optical marking has been passed. The following listing shows this process:
+
+\begin{minted}{c}
+uint64_t nav_tape_min_time_interval()
+{
+
+    // Get average of wheel speeds
+    int32_t speed = -globals.inverter_fl_speed;
+    speed += globals.inverter_fr_speed;
+    speed += -globals.inverter_bl_speed;
+    speed += globals.inverter_br_speed;
+    speed /= 4;
+
+    // Convert speed from rpm to mm/s
+    speed *= CONFIG_NAV_WHEEL_CIRCUMFERENCE;
+    speed /= 60;
+
+    // Enforce minimum speed
+    if (speed < 1000) {
+        speed = 1000;
+    }
+
+    // Calculate the time interval (us) between the two tape sensors
+    uint64_t time = 1000000ull * CONFIG_NAV_TAPE_WIDTH;
+    time /= speed;
+
+    // Add a safety margin
+    return 8 * time;
+
+}
+\end{minted}
+
+To protection against noise, is the input qualification built into the micro-controller that is configured to make sure the signal is stable for 15,3 microseconds before it can lead to an interrupt.
+
+Once the time of detection of an optical marking has been recorded, the location and velocity of the pod can easily be calculated and used to make control decisions and modify the global state.
+
 \section{State Diagram}
+
+As a requirement for the competition, the global control algorithm must be implemented as a finite state machine (FSM). The state diagram is checked and tested during the competition. Therefore, the FSM is designed with simplicity in mind and with the least number of automatic transitions in order to reduce the amount of tests necessary to demonstrate correctness.
+
+\begin{figure}[H]
+    \centering \includegraphics[width=1.0\textwidth]{./figures/state_diagram.pdf}
+    \caption{State diagram of the global finite state machine.}
+    \label{fig:state_diagram}
+\end{figure}
+
+Figure~\ref{fig:state_diagram} shows all states and state transitions. Any state transitions that are not listed in Figure~\ref{fig:state_diagram} are illegal and cannot be executed. The \texttt{EMERGENCY} state can be entered from any other state automatically if an emergency condition occurs or by a manual command form the control panel. All state transitions labelled "Manual" are also executed using a command from the control panel. Additional safety conditions that may prevent manual state transitions apply in some cases.
+
+The \texttt{IDLE} state is intended as the default state when the pod is powered on and stationary. Some emergency conditions are not active in this state as the causes may be cleared by manual intervention with the pod, such as pumping up the brake system to nominal pressure levels.
+
+A nominal run of the pod would consist of the following sequence of states: \texttt{READY} $\rightarrow$ \texttt{RUN} $\rightarrow$ \texttt{BRAKING} $\rightarrow$ \texttt{STOP}. In order to begin a run, the system must transition into the \texttt{READY} state, insuring that the all emergency conditions are negative and the pod is healthy before proceeding. The \texttt{RUN} state represents the acceleration phase of a run and is exited when the pod reaches a pre-defined location, brake failure on at least on of the braking systems appears to be imminent or a pre-defined maximum duration has been exceeded. Once transitioned to the \texttt{BRAKING} state, the motors are disabled by turning off the RUN signal and the brakes are engages. Once the pod has reached a full stop, the pod transitions into the \texttt{STOP} state.
+
+Although the FSM covers all safety critical actions, several other controls are left as manual controls to the user in favour of a simpler FSM. However, in several cases automatic safety checks are still in place that prevent manual actions that would lead to unsafe circumstances.
 
 \section{Control Law Accelerator (CLA)}
 

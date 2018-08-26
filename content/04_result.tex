@@ -80,6 +80,10 @@ Further testing revealed that, while the busy time between data packets is very 
 
 Given these results we have a memory/data-rate trade-off. Memory is limited on the micro-controller but we also want to maximize the amount of data that can be logged. In-field experimentation showed that under most circumstances write buffers of 2048 bytes are sufficient to achieve the data-rate necessary to log all sensor data. Nonetheless, we ended up using buffers of 4096 bytes to insure that no data would be lost.
 
+\subsubsection{Comparison to Escher}
+
+\todo{DO THIS}
+
 \subsection{Networking}
 
 Using an oscilloscope the SPI bus with the micro-controller and Ethernet controller can be monitored. Figures ~\ref{fig:net_send} and ~\ref{fig:net_recv} visualize the sequence of commands necessary for sending and receiving short 12 byte network packets. In order to send a packet, the micro-controller must first read the write pointer it should use from the Ethernet controller. Then it can write to the Ethernet controller's packet RAM at the read address. It must then update the write pointer so the Ethernet controller knows the length of the packet and finally confirm the packet using a send command. The sequence for receiving packets is analogous. Notice however, that the process is triggered by the interrupt signal from the Ethernet controller.
@@ -100,6 +104,7 @@ The same optimization could be applied to the reception of network packets but a
     \label{fig:net_recv}
 \end{figure}
 
+\todo{Maybe mention delay hack?}
 
 \section{In-Field Evaluation: Competition}
 
