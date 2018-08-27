@@ -20,7 +20,10 @@ To achieve such high speeds, pressurized passenger capsules ("pods") would run i
 
 Although the Hyperloop Alpha proposal was turned down, SpaceX decided in 2015 to hold a student competition\cite{HyperloopCompetiton} in order to drive the development of Hyperloop technology. To this end they constructed a 1,25km test tube designed to reach an ambient pressure of 8mBar. The tube features an aluminium sub-track and rail mounted on a concrete fill bed.
 
-\todo{Add picture of the tube}
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/hyperloop_tube}
+  \caption{Hyperloop test tube at SpaceX headquarters in Los Angeles.}
+\end{figure}
 
 Since the first competition there have been a second and third iteration and a forth has been announced for the summer of 2019.
 
@@ -32,7 +35,7 @@ The competition in Los Angeles consists mostly of a testing week where the pod m
 
 \section{Swissloop}
 
-Swissloop was founded as an association in September 2016 by a group of ETH Zurich students with the intention of competing in the second iteration of the Hyperloop Pod Competition. Swissloop was able to gain support from many industry sponsors and several departments at ETH Zurich including the Integrated Systems Laboratory. In July 2017 Swissloop revealed it's first pod Escher to the public. After reaching the finals of the competition with Escher in August 2017, a new team was assembled to compete in the third competition in July 2018 with a completely new pod called Mujinga.
+Swissloop\cite{Swissloop} was founded as an association in September 2016 by a group of ETH Zurich students with the intention of competing in the second iteration of the Hyperloop Pod Competition. Swissloop was able to gain support from many industry sponsors and several departments at ETH Zurich including the Integrated Systems Laboratory. In July 2017 Swissloop revealed it's first pod Escher to the public. After reaching the finals of the competition with Escher in August 2017, a new team was assembled to compete in the third competition in July 2018 with a completely new pod called Mujinga.
 
 \subsection{Escher}
 
@@ -40,7 +43,10 @@ Swissloop's first pod featured a cold gas propulsion system which was designed f
 
 The avionics implemented for Escher included around 30 sensors and provided a reliable basis for controlling the pod. Although eventually several flaws became apparent, the system provided a solid basis for the development of the avionics system of Mujinga. While Mujinga retained some components of the hardware, the design ended up being completely different in several ways. The Software was almost entirely rewritten from the ground up leading to large performance and reliability improvements.
 
-\todo{Add picture of Escher}
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/escher_transparent}
+  \caption{Rendering of Escher with transparent shell.}
+\end{figure}
 
 \subsection{Mujinga}
 
@@ -48,7 +54,15 @@ Swissloop's second pod design builds on the lessons learned with Escher but incl
 
 As mentioned, the avionics system was based on the platform used in Escher. However, much emphasis was placed on greater simplicity and reducing bottlenecks. A problem with the logging system in Escher meant that the amount of data that could be acquired was very small. Therefore, the logging system in Mujinga was specifically designed to handle much higher data rates.
 
-\todo{Add picture of Mujinga}
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/mujinga_transparent}
+  \caption{Rendering of Mujinga with transparent shell.}
+\end{figure}
+
+\begin{figure}[H]
+  \centering \includegraphics[width=0.5\textwidth]{./figures/mujinga_noshell}
+  \caption{Picture of Mujinga with separated shell.}
+\end{figure}
 
 \section{Project Scope}
 
@@ -72,8 +86,7 @@ The following tasks are not part of this bachelor thesis and were completed by o
     \item Wireless network for communication with the pod (SpaceX)
 \end{itemize}
 
-
-\todo{Implemented in competition... tested...}
+The control system in this thesis was developed specifically for the Hyperloop Pod Student Competition. As such it was tested in the field as part of the Mujinga pod at testing facilities in Switzerland and at the competition in Los Angeles at SpaceX's headquarters.
 
 %%% Local Variables: 
 %%% mode: latex

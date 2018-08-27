@@ -14,7 +14,7 @@
 
 \section{Sensors}
 
-\todo{Diagram with all sensors etc.}
+%\todo{Diagram with all sensors etc.}
 
 \subsection{Laser Distance Sensors}
 
@@ -77,7 +77,7 @@ To monitor the pod a network is made available inside the tube. The pod connects
 
 In order to verify the pod's performance and diagnose possible failures, we wanted to be able to log as much data as possible. Therefore, we set a goal of logging all sensor data that comes into the system.
 
-\todo{Maybe add screenshot of plotting software?}
+%\todo{Maybe add screenshot of plotting software?}
 
 \section{Control and State Machine}
 
@@ -89,9 +89,7 @@ The highest priority for this system was to ensure correctness and safety. There
 
 \section{Platform}
 
-The hardware platform used for this project is a combination of a custom designed PCB and a Texas Instruments Launchpad (LAUNCHXL-F28379D) featuring the TMS320F28379D micro-controller. The Launchpad provides a sold basis which includes all the components necessary to run the micro-controller. It then plugs into the custom PCB which accommodates all the necessary external components and incorporates connectors for all sensors and actuators.
-
-\todo{References to MCU/Launchpad}
+The hardware platform used for this project is a combination of a custom designed PCB and a Texas Instruments Launchpad (LAUNCHXL-F28379D)\cite{launchpad} featuring the TMS320F28379D micro-controller\cite{mcu}. The Launchpad provides a sold basis which includes all the components necessary to run the micro-controller. It then plugs into the custom PCB which accommodates all the necessary external components and incorporates connectors for all sensors and actuators.
 
 \begin{figure}[H]
   \centering \includegraphics[width=1.0\textwidth]{./figures/pcb.png}
@@ -102,7 +100,7 @@ The hardware platform used for this project is a combination of a custom designe
 
 The Texas Instruments TMS320F28379D was chosen as it provides high performance in terms of processing with two C28x CPU cores running at 200 MHz and two Control Law Accelerators (CLA). In addition, it incorporates a wide range of versatile peripherals covering most types of interfaces used in the system. Furthermore, this processor is a dual-core version of the single core TMS320F28377S which proved to work very well in Escher.
 
-Texas Instruments also provides a good Runtime Support Library (RTS) for C, as well as header files and support functions as part of ControlSUITE\todo {reference} making it easier to access device registers.
+Texas Instruments also provides a good Runtime Support Library (RTS) for C, as well as header files and support functions as part of ControlSUITE\cite{controlsuite} making it easier to access device registers.
 
 \subsection{Ethernet Controller}
 
