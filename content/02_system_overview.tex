@@ -14,13 +14,13 @@
 
 \section{Sensors}
 
-%\todo{Diagram with all sensors etc.}
+\todo{Diagram with all sensors etc.}
 
 \subsection{Laser Distance Sensors}
 
 In total four laser distance sensors were used to assess the vehicle attitude in relation to the rail.
 
-Two high precision sensors were employed to measure the lateral alignment to the track at the front and the back of the pod. These sensors provided the input for the yaw controller in order to actively ensure that the pod is correctly aligned with the track and not exercising an torque on the rail.
+Two high precision sensors were employed to measure the lateral alignment to the track at the front and the back of the pod. These sensors provided the input for the yaw controller in order to actively ensure that the pod is correctly aligned with the track and not exercising any torque on the rail.
 
 Two smaller form-factor sensors were also installed at the front and back of the pod to measure the pods vertical alignment. These were mostly used to assess the performance of the clamping system.
 
@@ -75,9 +75,12 @@ To monitor the pod a network is made available inside the tube. The pod connects
 
 \section{Data Logging}
 
-In order to verify the pod's performance and diagnose possible failures, we wanted to be able to log as much data as possible. Therefore, we set a goal of logging all sensor data that comes into the system.
+In order to verify the pod's performance and diagnose possible failures, we wanted to be able to log as much data as possible. Therefore, we set a goal of logging all sensor data that comes into the system. In order to efficiently visualize logged data, a specialized plotting application was developed.
 
-%\todo{Maybe add screenshot of plotting software?}
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/Screen_Shot_Plot.png}
+  \caption{Screen shot of the specialized plotting application.}
+\end{figure}
 
 \section{Control and State Machine}
 
@@ -89,7 +92,7 @@ The highest priority for this system was to ensure correctness and safety. There
 
 \section{Platform}
 
-The hardware platform used for this project is a combination of a custom designed PCB and a Texas Instruments Launchpad (LAUNCHXL-F28379D)\cite{launchpad} featuring the TMS320F28379D micro-controller\cite{mcu}. The Launchpad provides a sold basis which includes all the components necessary to run the micro-controller. It then plugs into the custom PCB which accommodates all the necessary external components and incorporates connectors for all sensors and actuators.
+The hardware platform used for this project is a combination of a custom designed PCB and a Texas Instruments Launchpad (LAUNCHXL-F28379D)\cite{launchpad} featuring the TMS320F28379D micro-controller\cite{mcu}. The Launchpad provides a solid basis which includes all the components necessary to run the micro-controller. It then plugs into the custom PCB which accommodates all the necessary external components and incorporates connectors for all sensors and actuators.
 
 \begin{figure}[H]
   \centering \includegraphics[width=1.0\textwidth]{./figures/pcb.png}
@@ -98,21 +101,21 @@ The hardware platform used for this project is a combination of a custom designe
 
 \subsection{Micro-controller}
 
-The Texas Instruments TMS320F28379D was chosen as it provides high performance in terms of processing with two C28x CPU cores running at 200 MHz and two Control Law Accelerators (CLA). In addition, it incorporates a wide range of versatile peripherals covering most types of interfaces used in the system. Furthermore, this processor is a dual-core version of the single core TMS320F28377S which proved to work very well in Escher.
+The Texas Instruments TMS320F28379D\cite{mcu} was chosen as it provides high performance in terms of processing power with two C28x CPU cores running at 200 MHz and two Control Law Accelerators (CLA). In addition, it incorporates a wide range of versatile peripherals covering most types of interfaces used in the system. Furthermore, this processor is a dual-core version of the single core TMS320F28377S which proved to work very well in Escher.
 
 Texas Instruments also provides a good Runtime Support Library (RTS) for C, as well as header files and support functions as part of ControlSUITE\cite{controlsuite} making it easier to access device registers.
 
 \subsection{Ethernet Controller}
 
-To establish a network connection on the test track an Ethernet connection was required. Since the micro-controller is not equipped with an Ethernet interface it needed to be included externally.
+To establish a network connection on the test track an Ethernet connection was required. Since the micro-controller is not equipped with an Ethernet interface, it needed to be included externally.
 
-After considering several options we decided on the WIZnet W5500 Ethernet Controller. Beyond providing Ethernet support it also incorporates hardware implementations of ICMP, ARP, IPv4, TCP, UDP and other protocols. This is advantageous as it offloads the computation necessary to run the network stack from the main processor, providing better performance. Furthermore, the chip is widely used and therefore has good community support.
+After considering several options we decided on the WIZnet W5500 Ethernet Controller\cite{wiznet}. Beyond providing Ethernet support it also incorporates hardware implementations of ICMP, ARP, IPv4, TCP, UDP and other protocols. This is advantageous as it offloads the computation necessary to run the network stack from the main processor, providing better performance. Furthermore, the chip is widely used and therefore has good community support.
 
 The micro-controller communicates with the Ethernet Controller over SPI but the W5500 also provides an interrupt line which can be configured to provide interrupts on events such as incoming packages.
 
 \subsection{SD-Card}
 
-In order to log telemetry data a form of non-volatile memory was needed. The data must be easily accessible and quickly retrievable. The obvious and most suitable choice is an SD-card, as it can be integrated into the SPI bus and provides large amounts of storage. At the same time it can be easily plugged into a laptop in order to retrieve the data in the field.
+In order to log telemetry data, a form of non-volatile memory was needed. The data must be easily accessible and quickly retrievable. The obvious and most suitable choice is an SD-card, as it can be integrated into the SPI bus and provides large amounts of storage. At the same time it can be easily plugged into a laptop in order to retrieve the data in the field.
 
 \subsection{External Analog-To-Digital Converter (ADC)}
 

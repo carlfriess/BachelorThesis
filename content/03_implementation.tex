@@ -28,9 +28,9 @@ Each core has dedicated FLASH memory, as well as dedicated RAM regions. Addition
     \label{fig:system_structure}
 \end{figure}
 
-Figure~\ref{fig:system_structure} shows the division of tasks between the two CPU cores and one of the Control Law Accelerator (CLA) co-processors. CPU runs most drivers and handles the control logic and state machine. All sensor data is processed on this core and all control decisions are made on it as well. This consolidates the data processing and control logic in one program without the need for concurrency control that could be subject to hard to find bugs.
+Figure~\ref{fig:system_structure} shows the division of tasks between the two CPU cores and one of the Control Law Accelerator (CLA) co-processors. CPU1 runs most drivers and handles the control logic and state machine. All sensor data is processed on this core and all control decisions are made on it as well. This consolidates the data processing and control logic in one program without the need for concurrency control that could be subject to hard to find bugs.
 
-CPU2 is dedicated to Logging and Networking. The main constraint for this is that the FAT file system is computationally heavy and, as will be discussed in section~\ref{logging}, is hard to implement asynchronously. In order to reduce the performance impact, logging was separated onto the second core. However, since the Ethernet controller uses the same SPI bus as the SD-card and only one CPU core can be the master of each peripheral (in this case one of the SPI interfaces), networking also needs to be handled on the second core.
+CPU2 is dedicated to Logging and Networking. The main constraint leading to this is that the FAT file system is computationally heavy and, as will be discussed in section~\ref{logging}, is hard to implement asynchronously. In order to reduce the performance impact, logging was separated onto the second core. However, since the Ethernet controller uses the same SPI bus as the SD-card and only one CPU core can be the master of each peripheral (in this case one of the SPI interfaces), networking also needs to be handled on the second core.
 
 Two control algorithms for traction and yaw control must execute regularly in precise intervals and therefore stand in conflict with the asynchronous nature of the remaining system. Furthermore, as they were developed by other people who did not necessarily have detailed knowledge of the system, it made sense to provide an isolated environment for the execution of the controllers.
 
@@ -48,7 +48,7 @@ All modules and drivers follow a similar structure. This structure mainly consis
 
 Immediately after system initialization and memory configuration is complete, \mintinline{c}{init()} is called to allow modules to perform initialisation routines, configure peripherals and enable required interrupts. However, interrupts remain globally disabled for the duration of these function's execution.
 
-Some drivers require further initialisation after interrupts have been enabled. Mostly this involves the configuration of an external device such as the Ethernet Controller, SD-card and laser distance sensors. For these initialisation sequences require fully functional communication and therefore interrupts. This is the purpose of the \mintinline{c}{configure()} functions.
+Some drivers require further initialisation after interrupts have been enabled. Mostly this involves the configuration of an external device such as the Ethernet Controller, SD-card and laser distance sensors. These initialisation sequences require fully functional communication and therefore interrupts. This is the purpose of the \mintinline{c}{configure()} functions.
 
 After start-up is complete the processor enters the main loop. At each iteration of the loop the \mintinline{c}{update()} function of each module is called. If the module does not need to perform any computation at that time it immediately returns. Several modules use internal finite state machines in order to allow for asynchronous execution.
 
@@ -87,7 +87,7 @@ struct ctrl_frame {
 
 Both the telemetry frame and control frame must be sent (and received) regularly in order for the pod and the control panel to check connectivity and enter a safe state should it fail. Therefore the fields in the control frame are usually zero and a non-zero value indicates a control command.
 
-Although the networking drive primarily executes on CPU2, a small portion also executes on CPU1. This is necessary, since all telemetry data originates from CPU1. Rather than placing data in global structures unnecessarily, the telemetry frame is simply assembled on CPU1 and then read by the DMA controller on CPU2. Similarly, CPU2 receives incoming control packets and CPU1 decodes them and executes any control commands. This process is illustrated by Figure~\ref{fig:networking_structure}.
+Although the networking driver primarily executes on CPU2, a small portion also executes on CPU1. This is necessary, since all telemetry data originates from CPU1. Rather than placing data in global structures unnecessarily, the telemetry frame is simply assembled on CPU1 and then read by the DMA controller on CPU2. Similarly, CPU2 receives incoming control packets and CPU1 decodes them and executes any control commands. This process is illustrated by Figure~\ref{fig:networking_structure}.
 
 \begin{figure}[H]
     \centering \includegraphics[width=1.0\textwidth]{./figures/networking_structure.pdf}
@@ -104,7 +104,7 @@ The telemetry and control frames are written to Message RAM, which is a shared m
     \item CPU1 $\rightarrow$ CPU2: Control frame has been processed and can be overwritten.
 \end{itemize}
 
-To achieve the highest possible performance all SPI communication with the Ethernet controller is implemented using the micro-controller's DMA controller. Since the SPI interface can be used with a 16-level FIFO extension, the DMA controller can operate in Burst mode. This means that the data is transferred in bursts of 16 words until the transfer has completed. The next bust is triggered by the FIFO interrupt which can be configured to assert at a specific level. For this implementation it is configured to trigger when the FIFO is empty but depending on the size of the bursts this can be optimized.
+To achieve the highest possible performance all SPI communication with the Ethernet controller are implemented using the micro-controller's DMA controller. Since the SPI interface can be used with a 16-level FIFO extension, the DMA controller can operate in Burst mode. This means that the data is transferred in bursts of 16 words until the transfer has completed. The next bust is triggered by the FIFO interrupt which can be configured to assert at a specific level. For this implementation it is configured to trigger when the FIFO is empty but depending on the size of the bursts this can be optimized.
 
 The following listing shows the process of configuring channel one of the DMA controller for transmission of a buffer at \mintinline{c}{src} of length \mintinline{c}{len}. Notice that the burst length must be a divisor of the total buffer size. This is because the DMA controller cannot handle bursts of different lengths.
 
@@ -183,7 +183,7 @@ timestamp;id;value
 
 Although beneficial, implementing a specialised FAT driver would not have been possible within the time-frame of this project. Therefore, I decided to use the FatFs\cite{fatfs} library. At first I attempted to use the newest version of the library. However, the micro-controller uses 16-bit addressable memory and therefore does not support 8-bit data types. Without rewriting large portions of the library it was not possible for it to run without native 8-bit data types. Luckily Texas Instruments includes an older version of the library with ControlSUITE\cite{controlsuite} that is able to run without 8-bit data types.
 
-The FatFs library provides the file system library but an SD-card driver layer also needed to be implemented to provide the interface to the underlying storage medium through the SPI driver. Unlike all other drivers, the SD-card and FAT drivers are not asynchronous. This is mostly due to how the FatFs library operates. Additionally, the data is organised into 8-bit bytes each contained within a 16-bit word which is the smallest possible data type on the processor. Furthermore, due to this constraint the use of DMA is not practical as data mapping is necessary before data can be written to the SPI interface and after it is read from the SPI interface.
+The FatFs library provides the file system layer but an SD-card driver layer also needed to be implemented to provide the interface to the underlying storage medium through the SPI driver. Unlike all other drivers, the SD-card and FAT drivers are not asynchronous. This is mostly due to how the FatFs library operates. Additionally, the data is organised into 8-bit bytes each contained within a 16-bit word which is the smallest possible data type on the processor. Due to this constraint the use of DMA is not practical as data mapping is necessary before data can be written to the SPI interface and after it is read from the SPI interface.
 
 Due to the limitations described above, the entire logging driver is fundamentally synchronous and the SD-card driver is implemented using only the FIFO extension of the SPI interface and without DMA. Given more time, a custom FAT driver could be designed specifically for this processor and incorporate the DMA controller and asynchronous operation. Alternatively, a real-time operation system could be used to partially alleviate the problem using threading. Another crude fix to introduce some asynchronism would be to utilise long jumps to context switch out of the logging driver.
 
@@ -240,15 +240,15 @@ Usually this kind of functionality would be achieved using a ring-buffer. Howeve
 
 Firstly, for performance reasons relating to the SD-card, performance is best when the file is written in consecutive blocks of 512 byte. Additionally, this reduces the overhead produced by reading the FAT table since every block will only be accessed once.
 
-Secondly, to optimise the performance of the FatFs library by reducing overheads, the write operation should be invoked infrequently with large chunks of data rather than frequently with smaller chunks of data. When using a ring-buffer a chunk of data may not be consecutively stored in memory leading to at least two invocations of the write operation rather than one.
+Secondly, to optimise the performance of the FatFs library by reducing overheads, the write operation should be invoked infrequently with large chunks of data rather than frequently with smaller chunks of data. When using a ring-buffer it is possible for a chunk of data not to be stored consecutively in memory, leading to at least two invocations of the write operation rather than one.
 
 Given these constraints, an optimally implemented and configured ring-buffer would operate in an identical way to the separate buffers approach explained above. Each buffer consists of 4kB. The trade-off leading to this size is explained in Section~\ref{logging_perf}.
 
 \section{External Analog-To-Digital Converter (ADC)}
 
-Some of the code for communicating with the external analog-to-digital converter was based on the software from Escher, since the same component was used. However, the code has been optimised to reduce communication to 32 SPI clock cycles per measurement.
+Some of the code for communicating with the external analog-to-digital converter was based on the software from Escher, since the same component was used. However, the code has been optimised to reduce communication to 32 SPI clock cycles per conversion.
 
-At start-up the external ADC is reset to make sure it is in a known state. After initialising the ADC, it is configured to use it's internal 2.5V reference and deliver 100 samples per second. The ADC reads data form 10 channels so this sample rate provides a constant sampling rate of 10Hz. Single-shot conversion mode is used so that the ADC provides a single conversion before the channel can be changed for the next conversion.
+At start-up the external ADC is reset to make sure it is in a known state. After initialising the ADC, it is configured to use it's internal 2.5V reference and deliver 100 samples per second. The ADC reads data form 10 channels so this sample rate provides a constant sampling rate of 10Hz. Single-shot conversion mode is used so that the ADC provides a single conversion before the channel is changed for the next conversion.
 
 In the main loop the processor waits for the $\overline{DRDY}$ signal from the ADC to go low indication that the last conversion has completed. Next, the data sequence illustrated by Figure~\ref{fig:adc_spi} delivers the 24-bit value of the conversion and starts the next conversion.
 
@@ -282,16 +282,15 @@ The following commands and data can be observed in Figure~\ref{fig:adc_spi}:
     \label{fig:rs485_structure}
 \end{figure}
 
-As mentioned before, the data format used in the RS485 bus standard is identical to standard serial (RS232) and therefore supported by the serial communication interface (SCI) built into the micro-controller. However, RS485 uses differential signalling. Therefore, a transceiver is required. Additionally, the bus structure means that only a single device may transmit at a time. For the micro-controller this has more complicated implications. The transceiver can only receive data if it is not transmitting, meaning that the micro-controller must produce an RTS signal ($\overline{RE}$ and $DE$) to determine which state the transceiver is in.
+As mentioned before, the data format used in the RS485 bus standard is identical to standard serial (RS232) and therefore supported by the serial communication interface (SCI) built into the micro-controller. However, RS485 uses differential signalling. Therefore, a transceiver is required. Additionally, the bus structure means that only a single device may transmit at a time. For the micro-controller this has more complicated implications. The transceiver can only receive data if it is not transmitting, meaning that the micro-controller must produce an RTS signal ($\overline{RE}$ and $DE$) to control which state the transceiver is in.
 
-Using the 16-level FIFO extension of the SCI interface, the drivers are able to operate asynchronously by pushing up to 16 words into the FIFO and continue processing while these are transmitted. The need to control the RTS signal would now break this asynchronism since it must be asserted immediately before beginning the transmission and immediately after the transmission completes to allow other devices to use the bus. Next, I will describe a solution which allows for asynchronism again using interrupts.
+Using the 16-level FIFO extension of the SCI interface, the drivers are able to operate asynchronously by pushing up to 16 words into the FIFO and continue processing while these are transmitted. The need to control the RTS signal would now break this asynchronism since it must be asserted immediately before beginning the transmission and de-asserted immediately after the transmission completes to allow other devices to use the bus. Next, I will describe a solution which allows for asynchronism using interrupts.
 
-First, the FIFO interrupt is configured to trigger once the FIFO is empty. However, the interrupt triggers when the last word in the FIFO has been transferred to the transmit buffer. There is no interrupt that can trigger when the last word has been fully transmitted. Therefore, the interrupt service routine triggers a CPU timer which triggers another interrupt after the duration it takes to transmit the final word. This time can be calculated using the BAUD rate. The interrupt service routine for the timer interrupt de-asserts the RTS signal.
+First, the FIFO interrupt is configured to trigger once the FIFO is empty. However, the interrupt triggers when the last word in the FIFO has been transferred to the transmit buffer. There is no interrupt that can trigger when the last word has been fully transmitted. Therefore, the interrupt service routine starts a CPU timer which triggers another interrupt after the duration it takes to transmit the final word. This time can be calculated using the BAUD rate. The interrupt service routine for the timer interrupt de-asserts the RTS signal.
 
 \subsection{OADM}
 
-%\todo{reference}
-The RS485 protocol used by the Baumer OADM laser distance sensors is simple. Each sensor has a unique ID (a single-digit non-zero number), which is configured during installation. The micro-controller requests the current sensor reading from a specific sensor using its ID and the sensor responds with the reading. The request consists of four characters where \texttt{*} represents the ID of the desired sensor: \texttt{\{*M\}}. An example reply from the sensor looks as follows: \texttt{\{*MM0448564\}}.
+The RS485 protocol used by the Baumer OADM laser distance sensors\cite{oadm} is simple. Each sensor has a unique ID (a single-digit non-zero number), which is configured during installation. The micro-controller requests the current sensor reading from a specific sensor using its ID and the sensor responds with the reading. The request consists of four characters where \texttt{*} represents the ID of the desired sensor: \texttt{\{*M\}}. An example reply from the sensor looks as follows: \texttt{\{*MM0448564\}}.
 
 The following listing shows the \mintinline{c}{update()} function for the OADM driver module. A simple state machine with two states allows the the module to be reset to the \mintinline{c}{READY} state, which is also it's initial state.
 
@@ -355,8 +354,7 @@ void oadm_update()
 
 \subsection{OM70}
 
-%\todo{reference}
-The Baumer OM70 sensors use different RS485 bus settings and also employ a more complex protocol. Nonetheless, the principal of operation is the same except that the sensors must be put into an RS485 enabled mode using an RS485 lock command at start-up. However, a problem arises from the reply from the sensor being significantly longer. The following few lines are example responses from the sensor.
+The more precise Baumer OM70 laser distance sensors\cite{om70} use different RS485 bus settings and also employ a more complex protocol. Nonetheless, the principal of operation is the same except that the sensors must be put into an RS485 enabled mode using an RS485 lock command at start-up. However, a problem arises from the reply from the sensor being significantly longer. The following few lines are example responses from the sensor.
 
 \begin{verbatim}
 :01A;108.648;0;2DBB\r\n
@@ -364,13 +362,13 @@ The Baumer OM70 sensors use different RS485 bus settings and also employ a more 
 :01A;NaN;12;B54E\r\n
 \end{verbatim}
 
-The replies from this sensor are up to 22 characters long. That is more than the 16 characters that fit into the FIFO of the SCI. This is an issue as without using the FIFO the driver cannot operate asynchronously. Using DMA would alleviate this problem but unfortunately the DMA controller on this micro-controller cannot access the SCI. Furthermore, the length of the reply from the sensor is variable and so the DMA controller would not be well suited to the task.
+The replies from this sensor are up to 22 characters long. That is more than the 16 characters that fit into the FIFO of the SCI. This is an issue, as without using the FIFO the driver cannot operate asynchronously. Using DMA would alleviate this problem but unfortunately the DMA controller on this micro-controller cannot access the SCI. Furthermore, the length of the reply from the sensor is variable and so the DMA controller would not be well suited to the task.
 
 To prevent a FIFO overflow, an interrupt on the receiving FIFO is configured to trigger when the first 13 characters of a reply have been received. The interrupt service routine then reads the first segment of the reply. The second segment can then be read later without the FIFO overflowing.
 
 \section{CAN Bus}
 
-The CAN bus is designed to be deployed in automotive applications. Mujinga incorporates multiple devices that use the CAN bus. The micro-controller conveniently incorporates a CAN interface and the Launchpad includes a CAN transceiver, so no additional hardware was necessary to support the CAN bus. The built-in CAN interface uses a dedicated Message RAM to store message objects that can be configured to accept CAN messages with an optional CAN ID filter or to hold messages that should be transmitted on the CAN bus. The CAN interface on the micro-controller handles bus arbitration and automatic retransmission so the application only needs to configure message objects with the required properties. To further simplify development using the CAN interface I used a driver library provided by Texas Instruments as part of ControlSUITE\cite{controlsuite}.
+The CAN bus standard is designed to be deployed in automotive applications. Mujinga incorporates multiple devices that use the CAN bus. The micro-controller conveniently incorporates a CAN interface and the Launchpad includes a CAN transceiver, so no additional hardware was necessary to support the CAN bus. The built-in CAN interface uses a dedicated Message RAM to store message objects that can be configured to accept CAN messages with an optional CAN ID filter or to hold messages that should be transmitted on the CAN bus. The CAN interface on the micro-controller handles bus arbitration and automatic retransmission so the application only needs to configure message objects with the required properties. To further simplify development using the CAN interface I used a driver library provided by Texas Instruments as part of ControlSUITE\cite{controlsuite}.
 
 \subsection{Inverters}
 
@@ -382,8 +380,7 @@ To kick-start communication, the control panel sends a "Clear inverter faults" c
 
 \subsection{Battery Management Systems (BMS)}
 
-%\todo{reference CANopen} 
-Unlike the inverters the Battery Management Systems adhere to the CANopen standard. The BMSs are more passive than the inverters and do not require configuration. They simply start transmitting telemetry data at start-up. CANopen messages can be identified by their CAN ID but still contain additional information in the message.
+Unlike the inverters the Battery Management Systems adhere to the CANopen standard\cite{canopen}. The BMSs are more passive than the inverters and do not require configuration. They simply start transmitting telemetry data at start-up. CANopen messages can be identified by their CAN ID but still contain additional identification information in the message.
 
 The driver for the BMSs configures one message object for each BMS and for each message that needs to be received. Each message object is configured to only accept the appropriate message ID. Similarly to the inverter driver it uses the new data register of the CAN interface to read message objects whenever new data has been received. The frequency and types of data is hard-coded into the BMS firmware and cannot be configured without intervention from the manufacturer.
 
@@ -485,7 +482,7 @@ Although the FSM covers all safety critical actions, several other controls are 
 
 As mentioned in Section~\ref{impelementation_structure}, two controllers regulating traction and yaw need to be executed at regular intervals. In order to provide an isolated environment and improve performance, these controllers execute on the CLA. The CLA is a co-processor with a separate instruction set that executes in parallel to the CPU at the same frequency. The CLA is configured with up to eight task vectors (function pointers). A task can then be triggered by a peripheral or by software on the CPU. Once triggered, the task runs until it reaches an \texttt{MSTOP} instruction.
 
-Blocks of the CPU's dedicated RAM can be configured as program and data space for the CLA. Texas Instruments provides a C compiler for the CLA instruction set. However, the C compiler only supports a subset of C. The main difference being, that the output programs do not use a stack. Instead a scratch-pad concept is used. As a result recursion is not supported. Even so, the compiler is sufficiently capable for control applications.
+Blocks of the CPU's dedicated RAM can be configured as program and data space for the CLA. Texas Instruments provides a C compiler for the CLA instruction set. However, the C compiler only supports a subset of C. The main difference being, that output programs do not use a stack. Instead a scratch-pad concept is employed. As a result recursion is not supported. Even so, the compiler is sufficiently capable for control applications.
 
 In order to pass input arguments to the CLA and return outputs to the CPU, the CLA and CPU share a Message RAM consisting of two 128 word segments. One is writeable only by the CPU, the other is only writeable by the CLA. Variables can be allocated in these segments using a \mintinline{c}{#pragma DATA_SECTION()} directive and then linked in the CPU and CLA code at compile time. Figure~\ref{fig:CLA_communication} illustrates this structure.
 

@@ -27,7 +27,7 @@ Figure~\ref{fig:sd_card_write} illustrates the initial steps of writing to an SD
     \label{fig:sd_card_write}
 \end{figure}
 
-Between each data packet and after the full sequence of commands and packets, the SD card enters a busy state where it is processing the written data. As Figure~\ref{fig:sd_card_write_wait} shows, the busy time after the full sequence (or rather after the write termination command) is particularly long in relation to the transmission time of a single data packet.
+Between each data packet and after the full sequence of packets and commands, the SD card enters a busy state where it is processing the written data. As Figure~\ref{fig:sd_card_write_wait} shows, the busy time after the full sequence (or rather after the write termination command) is particularly long in relation to the transmission time of a single data packet.
 
 \begin{figure}[H]
     \centering \includegraphics[width=1.0\textwidth]{./figures/"SPI SD WRITE1".PNG}
@@ -35,7 +35,7 @@ Between each data packet and after the full sequence of commands and packets, th
     \label{fig:sd_card_write_wait}
 \end{figure}
 
-Further testing revealed that, while the busy time between data packets is very small, the busy time is almost completely dominated by the busy time at the end of a write operation. This is further verified by another test where chunks of different sizes are repeatedly written to a file in the FAT file system and the data rate observed. Table~\ref{tab:write_speed} shows the results of this test. As can be seen from Figure~\ref{fig:write_speed} the write speed behaves almost linearly compared to the chunk size.
+Further testing revealed that, while the busy time between data packets is very small, the total busy time is almost completely dominated by the busy time at the end of a write operation. This is further verified by another test where chunks of different sizes are repeatedly written to a file in the FAT file system and the data rate observed. Table~\ref{tab:write_speed} shows the results of this test. As can be seen from Figure~\ref{fig:write_speed} the write speed behaves almost linearly compared to the chunk size.
 
 \begin{table}[htbp]
     \caption{Write speeds for chunks of different sizes.}
@@ -114,7 +114,7 @@ The most important objective in comparison to Escher was to improve the logging 
 
 \subsection{Networking}
 
-Using an oscilloscope the SPI bus with the micro-controller and Ethernet controller can be monitored. Figures ~\ref{fig:net_send} and ~\ref{fig:net_recv} visualise the sequence of commands necessary for sending and receiving short 12 byte network packets. In order to send a packet, the micro-controller must first read the write pointer it should use from the Ethernet controller. Then it can write to the Ethernet controller's packet RAM at the read address. It must then update the write pointer so the Ethernet controller knows the length of the packet and finally confirm the packet using a send command. The sequence for receiving packets is analogous. Notice however, that the process is triggered by the interrupt signal from the Ethernet controller.
+Using an oscilloscope the SPI bus with the micro-controller and Ethernet controller can be monitored. Figures ~\ref{fig:net_send} and ~\ref{fig:net_recv} visualise the sequence of commands necessary for sending and receiving short 12 byte network packets. In order to send a packet, the micro-controller must first read the write pointer it should use from the Ethernet controller. Then it can write to the Ethernet controller's packet RAM at the write address. It must then update the write pointer so the Ethernet controller knows the length of the packet and finally confirm the packet using a send command. The sequence for receiving packets is analogous. Notice however, that the process is triggered by the interrupt signal from the Ethernet controller.
 
 \begin{figure}[H]
     \centering \includegraphics[width=1.0\textwidth]{./figures/"SPI NET SEND".PNG}
@@ -144,19 +144,27 @@ In addition to the vacuum chamber test, the team was able to use a 150m test tra
 
 \subsection{Competition}
 
-%\todo{Pic: Mujinga at competition}
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/mujinga_competition}
+  \caption{Picture of Mujinga without shell in front of the Hyperloop test tube in Los Angeles.}
+\end{figure}
 
 Throughout the competition week the pod was subjected to a wide range of tests. Three tests specifically target the control software developed in this thesis.
 
 First, the functional test ensures that after power-on the pod is in a safe state and telemetry is received with nominal values. During this test the team also demonstrated correct operation of all safety-critical pod functions such as the brakes from software and using the control panel to command the pod.
 
-Next, the navigation test verifies the navigational mechanisms built into the software work correctly and the level of fault tolerance is assessed. In order to show correct functionality of the navigational algorithm, all possible scenarios were simulated using fake optical markings while the pod remained stationary and the software responses were observed using the telemetry data visualised in the control panel.
+Next, the navigation test verifies that the navigational mechanisms built into the software work correctly and the level of fault tolerance is assessed. In order to show correct functionality of the navigational algorithm, all possible scenarios were simulated using fake optical markings while the pod remained stationary and the software responses were observed using the telemetry data visualised in the control panel.
 
 Finally, the state diagram test consists of verifying the pod operates according to the state diagram (Figure~\ref{fig:state_diagram}). Essentially, this test checks that the global finite state machine is correctly implemented. To demonstrate this, all automatic transitions are tested by simulating all possible causes for the transition. For example, the transition \texttt{RUN} $\rightarrow$ \texttt{BRAKING} should occur after the pod has travelled a pre-defined distance. This can be simulated by passing fake optical markings in front of the laser contrast sensors.
 
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/mujinga_competition_tent}
+  \caption{Picture of Mujinga's shell in front of the tent where the team worked on the pod during testing week at SpaceX.}
+\end{figure}
+
 With all these tests passed, the team had actually gained a decent lead compared to the other teams in the competition. The next test for the pod was the vacuum chamber test, where the full pod is placed in a large vacuum chamber. Although this test had been previously carried out successfully in Switzerland, the pod suffered a sever failure during this test preventing the team from advancing to the finals of the competition.
 
-Shortly after enabling the high-voltage systems in vacuum, a loss of communications occurred. After re-pressurising the vacuum chamber it was immediately possible to see that the low-voltage electronics had been fatally damaged. Further investigation revealed, that the high-voltage batteries had been short circuited. Surprisingly, the low-voltage systems continued to log data for a full second after the failure. After analysing the data, the failure could be narrowed down to one of the inverters. A manufacturing fault caused arcing to occur between the two battery poles. The arcing damaged the inverter, portions of the low-voltage electronics, the low-voltage battery and both high-voltage batteries. Although we were able to repair all other components, the high-voltage battery cells were too severely damaged from the over current to be safely used any further.
+Shortly after enabling the high-voltage systems in vacuum, a loss of communications occurred. After re-pressurising the vacuum chamber it was immediately possible to see that the low-voltage electronics had been fatally damaged. Further investigation revealed, that the high-voltage batteries had been short circuited. Surprisingly, the low-voltage systems continued to log data for a full second after the failure. After analysing the data, the failure could be narrowed down to one of the inverters. A manufacturing fault caused arcing to occur between the two battery poles. The arcing damaged the inverter, portions of the low-voltage electronics, the low-voltage battery and both high-voltage batteries. Although we were able to repair all other components, the high-voltage battery cells were too severely damaged from the over-current to be safely used any further.
 
 \section{Conclusion}
 
