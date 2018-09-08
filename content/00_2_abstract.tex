@@ -11,4 +11,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \chapter*{Abstract}
-\lipsum[1-2]
+
+Hyperloop is a high-speed transportation concept, where pressurized capsules (“pods”) travel through vacuum tubes. The control system developed in this thesis is designed to control a second-generation prototype Hyperloop pod competing in a student competition hosted by SpaceX in Los Angeles, California. The main design objectives were correctness and reliability while improving performance in comparison to the control system of the previous pod. 
+
+Although no real-time operating system was used, the system was designed to be fundamentally asynchronous and runs across two CPU cores and a Control Law Accelerator. It transmits telemetry data to a control panel over a network and logs all incoming sensor data, as well as derived data. Robust navigation and control algorithms guarantee safe operation of the vehicle and correct responses during failures.
+
+The control system was deployed and tested in the field before and during the competition and performed perfectly. Although a manufacturing fault in the propulsion system prevented the team from advancing to the finals of the competition, the pod's design tackles many technical issues relating to high-speed transportation in a low-pressure environment.
