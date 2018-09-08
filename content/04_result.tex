@@ -168,14 +168,36 @@ Shortly after enabling the high-voltage systems in vacuum, a loss of communicati
 
 \section{Conclusion}
 
-In  conclusion, a control system was developed for a prototype Hyperloop pod and deployed at the Hyperloop Pod Competition hosted by SpaceX in Los Angeles, California. All major design goals could be met but some further optimization in some areas is possible. Although the team did not advance to the finals of the competition, the overall system was well designed and will provide a solid foundation for future Hyperloop projects.
+%Objective
 
-%Summary of work
+The objective of this bachelor thesis was to design a control system for a prototype Hyperloop pod competing in SpaceX's 2018 Hyperloop Pod Competition. The safety and therefore the correctness and reliability of the system was the highest priority. The system had to be robust and be able to execute many runs of the pod without needing intervention. The implementation also had to improve on the software of the previous pod Escher, in particular by simplifying the system, reducing bottlenecks, being able to log significantly more data and being designed from the ground up with testability in mind.
 
-%What I did
+%Platform
 
-%Quantitative data
+The platform chosen for this project was based on a Texas Instruments Launchpad together with a custom interface PCB. The software makes use of both CPUs of the dual-core micro-controller and the built-in Control Law Accelerator for parallel processing. No real-time operating system was used. Instead, the system is designed to be fundamentally asynchronous. Modular software design and a centralized data-flow make it easily maintainable and extendible.
 
-%How it was used in the real world
+%Networking
 
-%\section{Outlook}
+To provide remote telemetry data and control, a protocol was designed that is resistant to unstable network connections and packet loss. An external Ethernet Controller allows the computational effort of running a full network stack to be offloaded from the CPU. Communication with the Ethernet Controller runs over an SPI bus and the driver makes use of DMA to provide near optimal performance. The networking driver is a dual-core implementation and uses IPC flags to synchronise communication between CPU cores. Experimental evaluation showed that the performance far surpassed the requirements of the project.
+
+%Logging
+
+In order to log data to an SD card, several file systems were considered. In order to simplify retrieving log data as much as possible, the FAT file system was chosen. To this end, an SD-Card driver was implemented using the FIFO extension of the SPI interface. Event-based logging allows for variable and mixed data-rates. Similar to the networking driver, logging is a dual-core process using IPC flags for synchronisation. Experimental evaluation revealed a memory/data-rate trade-off where more memory usage can lead to increased data-rates. On average though, the logging system was able to log 7,8 times more data than the logging system on Escher. In order to visualise large amounts of log data rapidly and efficiently, a custom plotting application was developed.
+
+%External ADC
+%RS485 Bus
+%CAN Bus
+
+Although most sensors were chosen with digital outputs, some produce analog output signals. These are read using an external analog to digital converter for particularly accurate readings. The driver for the external ADC is highly optimized and operates with optimal communication. Communication with the laser distance sensors runs over two RS485 buses, which allow several sensors to share a single bus. The drivers use the FIFO extension of the micro-controller's serial interface for efficient and asynchronous operation. A sequence of interrupts allows the RTS signal to be controlled asynchronously. Some remaining devices communicate using a CAN bus. The micro-controller's built-in CAN interface and a driver library from Texas Instruments again allowed for an efficient and asynchronous implementation.
+
+%Control
+
+A robust navigation algorithm was implemented with failure recovery and filtering to allow reliable, safe and autonomous control of the pod. A global finite state machine was designed and implemented to control all safety critical processes and incorporates all checks necessary to guarantee safety of the vehicle. The states and state transitions are optimised for testability, by reducing the number of automatic transitions to a minimum.
+
+%Competiton
+
+In conclusion, the control system developed in this thesis was able to meet all design objectives. Performance was evaluated experimentally and surpassed the requirements of the project. The system was successfully deployed and used to control Mujinga before and during the 2018 Hyperloop Pod Competition hosted by SpaceX in Los Angeles. Although the team was not able to advance to the finals due to a manufacturing fault, the system performed perfectly during tests and therefore can be considered a success.
+
+\section{Outlook}
+
+The control software was designed to be modular and easily extendible, so it will serve as a basis for future systems as Swissloop continues to develop Hyperloop technology, striving for efficient high-speed transport. While Mujinga does not yet represent a viable pod for a full-scale commercial Hyperloop system, it tackles some of the challenges relating to high-speed transport in a low-pressure environment. Ongoing work at Swissloop will allow for future iterations that will become increasingly close to a full-scale solution.
