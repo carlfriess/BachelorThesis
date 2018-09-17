@@ -16,7 +16,7 @@ The Hyperloop Passenger Transportation Concept was initially proposed by Elon Mu
 
 To achieve such high speeds, pressurized passenger capsules ("pods") would run in tubes where near vacuum is maintained. The initial proposal also called for air-bearings to allow the pod to levitate during transit. In order to supply the air bearings with pressurised air and further reduce drag, a compressor would suck the remaining air in through an inlet at the front of the pod. A linear motor system would be used to accelerate and decelerate the pod at high speeds while limiting the acceleration to 1g for passenger comfort.
 
-\section{Hyperloop Competition}
+\section{Hyperloop Pod Competition}
 
 Although the Hyperloop Alpha proposal was turned down, SpaceX decided in 2015 to hold a student competition\cite{HyperloopCompetiton} in order to drive the development of Hyperloop technology. To this end they constructed a 1,25km test tube designed to reach an ambient pressure of 8mBar. The tube features an aluminium sub-track and rail mounted on a concrete fill bed.
 
@@ -66,10 +66,10 @@ As mentioned, the avionics system was based on the platform used in Escher. Howe
 
 \section{Project Scope}
 
-The scope of this Bachelor Thesis is the implementation of the avionics and control software running on the Hyperloop pod. This includes the following tasks:
+To guarantee safe operation of the pod, an avionics system needed to be designed. The system uses a collection of on-board sensors to navigate the test track and control the pod according to the specified parameters. It also provides telemetry data over a network connection and can be controlled remotely. Various devices such as four motor-controllers (inverters) need to be controlled and all acquired data should be logged. The scope of this Bachelor Thesis is the implementation of the avionics and control software running on the pod in order to compete at the Hyperloop Pod Competition. This includes the following tasks:
 
 \begin{itemize}
-    \item Platform selection
+    \item Platform selection (micro-controller, peripherals, sensors)
     \item Development of drivers to interface and communicate with on-board sensors
     \item Development of drivers for a network interface and SD card
     \item Development of drivers for communication with motor controllers (inverters), battery management systems and brake actuators

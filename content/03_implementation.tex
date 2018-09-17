@@ -146,6 +146,8 @@ Using the DMA controller means that the SPI interface can operate at it's highes
 
 \section{Logging} \label{logging}
 
+In order to allow the pod's performance to be evaluated and failures to be diagnosed, all acquired and derived data must be logged and easily retrievable. The logging system implemented in this thesis represents the area with the largest improvement compared to the system implemented for the first-generation prototype Escher. An SD-card is used to provide non-volatile and removable memory that can be easily accessed on other platforms.
+
 \subsection{File system}
 
 The largest design decision in designing the logging driver was the file system to use. The main requirement was for the logged data to be quickly and easily retrievable. The most commonly used file system on SD-cards is FAT (FAT32 or exFAT). The advantage of the FAT file system in this case is that it can be read with almost any computer making it particularly easy to retrieve log files. On the other hand, FAT is very inefficient unless the FAT table (which on larger storage devices is very large) can be cached in memory. If the FAT table is not cached, it must be read block by block every time a file is being written and a new block is needed. In embedded applications like this one, it is usually not possible to cache the FAT table.

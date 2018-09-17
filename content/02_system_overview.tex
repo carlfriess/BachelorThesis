@@ -15,7 +15,14 @@
 \begin{figure}[H]
   \centering \includegraphics[width=1.0\textwidth]{./figures/"Sensor Diagram"}
   \caption{System Structure}
+  \label{fig:sensor_diagram}
 \end{figure}
+
+Figure~\ref{fig:sensor_diagram} illustrates the overall structure of the control system. The main component of the control system is a Texas Instruments Launchpad (drawn in red) featuring a dual-core micro-controller.
+
+A series of pressure sensors produce analog signals that are sampled by an external Analog to Digital Converter (ADC). The external ADC communicates with the micro-controller over an SPI bus. Laser Distance Sensors connect to one of two RS485 buses in order to communicate with the micro-controller through an RS485 transceiver. On a separate SPI bus the micro-controller interfaces with an SD-Card and an Ethernet Controller. Four motor-controllers (inverters) and two battery management systems are connected with the micro-controller via a CAN bus.
+
+The following sections discuss each component of the system, as well as specifications for the control system.
 
 \section{Sensors}
 
@@ -87,7 +94,7 @@ In order to verify the pod's performance and diagnose possible failures, we want
 
 \section{Control and State Machine}
 
-Overall, the pod is controlled by a finite state machine (FSM). The FSM must incorporate all critical safety checks and is also used to allow the pod to complete the run autonomously. In order to improve testability, the FSM should have the minimum number of states necessary for the desired functionality. To this end we also decided to minimize the number of automatic state transitions, minimizing the risk of bugs in the implementation.
+Overall, the pod is controlled by a finite state machine (FSM) which is illustrated in Figure~\ref{fig:state_diagram}. The FSM must incorporate all critical safety checks and is also used to allow the pod to complete the run autonomously. In order to improve testability, the FSM should have the minimum number of states necessary for the desired functionality. To this end we also decided to minimize the number of automatic state transitions, minimizing the risk of bugs in the implementation.
 
 \section{Correctness and Testability}
 
@@ -106,7 +113,15 @@ The hardware platform used for this project is a combination of a custom designe
 
 The Texas Instruments TMS320F28379D\cite{mcu} was chosen as it provides high performance in terms of processing power with two C28x CPU cores running at 200 MHz and two Control Law Accelerators (CLA). In addition, it incorporates a wide range of versatile peripherals covering most types of interfaces used in the system. Furthermore, this processor is a dual-core version of the single core TMS320F28377S which proved to work very well in Escher.
 
-Texas Instruments also provides a good Runtime Support Library (RTS) for C, as well as header files and support functions as part of ControlSUITE\cite{controlsuite} making it easier to access device registers.
+Figure~\ref{fig:mcu_block_diagram} shows a functional block diagram of the chosen micro-controller. It includes 1MB of FLASH memory that is split between the two C28x CPU cores. In total, the micro-controller includes 204KB of local, local shared and global shared RAM. The various peripherals are available on the buses of both CPUs and some are available to the DMA controllers and CLA co-processors. 
+
+\begin{figure}[H]
+  \centering \includegraphics[width=1.0\textwidth]{./figures/mcu_block_diagram.pdf}
+  \caption{Functional block diagram micro-controller - Texas Instruments \cite{mcudatasheet}}
+  \label{fig:mcu_block_diagram}
+\end{figure}
+
+Texas Instruments provides a good Runtime Support Library (RTS) for C, as well as header files and support functions as part of ControlSUITE\cite{controlsuite} making it easier to access device registers.
 
 \subsection{Ethernet Controller}
 

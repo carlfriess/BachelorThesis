@@ -13,6 +13,8 @@
 
 \chapter{Experimental Results}
 
+This chapter will show the evaluation of the implemented control system in terms of performance analysis in the lab and in-field testing prior to and during the Hyperloop Pod Competition at SpaceX's headquarters in Los Angeles, California. In particular, the performance evaluation of the logging system and networking driver will be discussed, revealing an interesting trade-off between memory usage and performance. Furthermore, the result of the competition will be discussed with emphasis on the impact of the control system.
+
 \section{Performance Evaluation}
 
 \subsection{Logging and SD-card driver} \label{logging_perf}
@@ -97,7 +99,8 @@ The most important objective in comparison to Escher was to improve the logging 
         xmax=3,
         ymajorgrids=true,
         grid style=dashed,
-        bar width=50pt
+        bar width=50pt,
+        ylabel={Data points per second},
     ]
 
 \addplot [
@@ -166,7 +169,7 @@ With all these tests passed, the team had actually gained a decent lead compared
 
 Shortly after enabling the high-voltage systems in vacuum, a loss of communications occurred. After re-pressurising the vacuum chamber it was immediately possible to see that the low-voltage electronics had been fatally damaged. Further investigation revealed, that the high-voltage batteries had been short circuited. Surprisingly, the low-voltage systems continued to log data for a full second after the failure. After analysing the data, the failure could be narrowed down to one of the inverters. A manufacturing fault caused arcing to occur between the two battery poles. The arcing damaged the inverter, portions of the low-voltage electronics, the low-voltage battery and both high-voltage batteries. Although we were able to repair all other components, the high-voltage battery cells were too severely damaged from the over-current to be safely used any further.
 
-\section{Conclusion}
+\chapter{Conclusion}
 
 %Objective
 
